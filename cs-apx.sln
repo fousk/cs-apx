@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "cs-apx", "cs-apx\cs-apx.csproj", "{0264E1E7-84E9-4CAB-9405-440DF6BFEDC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestCsApx", "UnitTestCsApx\UnitTestCsApx.csproj", "{5C9556C9-0894-4E73-93BF-2C95028B82A0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{01DBE3AD-2E74-4EED-BAD7-67A07E89A319} = {01DBE3AD-2E74-4EED-BAD7-67A07E89A319}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{269C6E45-3DDB-4FA1-B368-9AC68ED6EFA1}"
+	ProjectSection(SolutionItems) = preProject
+		..\..\..\APX\cs-apx\remotefile\remotefile.cs = ..\..\..\APX\cs-apx\remotefile\remotefile.cs
+		..\..\..\APX\cs-apx\util\util.cs = ..\..\..\APX\cs-apx\util\util.cs
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csApxCore", "csApxCore\csApxCore.csproj", "{01DBE3AD-2E74-4EED-BAD7-67A07E89A319}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0264E1E7-84E9-4CAB-9405-440DF6BFEDC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0264E1E7-84E9-4CAB-9405-440DF6BFEDC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0264E1E7-84E9-4CAB-9405-440DF6BFEDC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0264E1E7-84E9-4CAB-9405-440DF6BFEDC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C9556C9-0894-4E73-93BF-2C95028B82A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C9556C9-0894-4E73-93BF-2C95028B82A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C9556C9-0894-4E73-93BF-2C95028B82A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C9556C9-0894-4E73-93BF-2C95028B82A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01DBE3AD-2E74-4EED-BAD7-67A07E89A319}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01DBE3AD-2E74-4EED-BAD7-67A07E89A319}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01DBE3AD-2E74-4EED-BAD7-67A07E89A319}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01DBE3AD-2E74-4EED-BAD7-67A07E89A319}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
