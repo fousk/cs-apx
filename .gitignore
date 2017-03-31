@@ -1,0 +1,10 @@
+#build files
+**/Debug/
+**/Release
+**/build/
+**/TestResults/
+#user files
+**/*vcxproj.user
+**.vs/
+*.VC.db
+*.VC.opendb
