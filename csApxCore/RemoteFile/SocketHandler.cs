@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+using System.Threading;
 
 namespace RemoteFile
 {
@@ -14,6 +14,16 @@ namespace RemoteFile
     public class SocketAdapter : TransmitHandler
     {
         ReceiveHandler receiveHandler;
+
+        public void work()
+        {
+            // Do stuff
+            while(true)
+            {
+                Console.WriteLine("tick from SocketAdapter: " + Thread.CurrentThread.Name);
+                Thread.Sleep(1000);
+            }
+        }
 
         public void setRecieveHandler(ReceiveHandler handler)
         {

@@ -8,18 +8,6 @@ using System.Collections.Concurrent;
 
 namespace RemoteFile
 {
-    public class Client
-    {
-
-        SocketAdapter socketAdapter = new SocketAdapter();
-        FileManager fileManager = new FileManager();
-        //socketAdapter.setRecieveHandler(fileManager);
-        Client()
-        {
-            socketAdapter.setRecieveHandler(fileManager);
-        }
-    }
-    
     public class ReceiveHandler
     {
         public virtual void onConnected(TransmitHandler handler)
@@ -37,7 +25,17 @@ namespace RemoteFile
 
         EventWaitHandle waitHandle = new AutoResetEvent(false);
         ConcurrentQueue<Msg> msgQueue = new ConcurrentQueue<Msg>();
-        
+
+        public void work()
+        {
+            // Do stuff
+            while (true)
+            {
+                Console.WriteLine("tick from FileManager: " + Thread.CurrentThread.Name);
+                Thread.Sleep(1000);
+            }
+        }
+
         /*public FileManager(FileMap setLocalFileMap, FileMap setRemoteFileMap)
         {
             localFileMap = setLocalFileMap;
