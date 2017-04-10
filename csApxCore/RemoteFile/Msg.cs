@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace RemoteFile
 {
-    class Msg
+    public class Msg
     {
         // ToDo
     }
