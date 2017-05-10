@@ -5,17 +5,18 @@ using System.Text;
 using System.Threading.Tasks;
 using RemoteFile;
 
+
 namespace Apx
 {
     public class Constants
     {
-        public const ulong PORT_DATA_START     = 0x0;
-        public const ulong PORT_DATA_BOUNDARY  = 0x400; //1KB, this must be a power of 2
-        public const ulong DEFINITION_START    = 0x4000000; //64MB, this must be a power of 2
-        public const ulong DEFINITION_BOUNDARY = 0x100000; //1MB, this must be a power of 2
-        public const ulong USER_DATA_START     = 0x20000000; //512MB, this must be a power of 2
-        public const ulong USER_DATA_END       = 0x3FFFFC00; //Start of remote file cmd message area
-        public const ulong USER_DATA_BOUNDARY  = 0x100000; //1MB, this must be a power of 2
+        public const uint PORT_DATA_START = 0x0;
+        public const uint PORT_DATA_BOUNDARY = 0x400; //1KB, this must be a power of 2
+        public const uint DEFINITION_START = 0x4000000; //64MB, this must be a power of 2
+        public const uint DEFINITION_BOUNDARY = 0x100000; //1MB, this must be a power of 2
+        public const uint USER_DATA_START = 0x20000000; //512MB, this must be a power of 2
+        public const uint USER_DATA_END = 0x3FFFFC00; //Start of remote file cmd message area
+        public const uint USER_DATA_BOUNDARY = 0x100000; //1MB, this must be a power of 2
     }
 
     public class File : RemoteFile.File
@@ -63,7 +64,7 @@ namespace Apx
             return res;
         }
 
-        public bool assignFileAddress(File file, ulong startAddress, ulong endAddress, ulong addressBoundary)
+        public bool assignFileAddress(File file, uint startAddress, uint endAddress, uint addressBoundary)
         {
             // startAddress must be a power of 2
             if ((startAddress != 0) && ((startAddress & (startAddress -1)) != 0) )
@@ -74,10 +75,10 @@ namespace Apx
             { throw new System.ArgumentException("addressBoundary must be a power of 2"); }
 
             //List<ulong> checkOrderList = new List<ulong>();
-            ulong inFileTotLength = (ulong)file.length + addressBoundary;
-            ulong possiblePlacement = startAddress;
-            ulong tempFileAddress;
-            int tempFileLength;
+            uint inFileTotLength = (uint)file.length + addressBoundary;
+            uint possiblePlacement = startAddress;
+            uint tempFileAddress;
+            uint tempFileLength;
 
             // Tick once if there are no items in list
             for (int i = 0; i <= _items.Count; i++)
@@ -117,7 +118,7 @@ namespace Apx
                     else    
                     {
                         // Try with the next possible slot
-                        if (tempFileAddress + (ulong)tempFileLength < endAddress)
+                        if (tempFileAddress + (uint)tempFileLength < endAddress)
                         {
                             // possiblePlacement = tempFileAddress + (ulong)tempFileLength;
                             possiblePlacement = getNextArea(tempFileAddress, tempFileLength, addressBoundary);
@@ -153,9 +154,9 @@ namespace Apx
             return temp;
         }
 
-        public List<ulong> getAddressList()
+        public List<uint> getAddressList()
         {
-            List<ulong> temp = new List<ulong>();
+            List<uint> temp = new List<uint>();
             for (int i = 0; i < _items.Count; i++)
             {
                 temp.Add(_items[i].address);
@@ -163,14 +164,14 @@ namespace Apx
             return temp;
         }
 
-        public ulong getNextArea(ulong fileAddress, int fileLength, ulong boundary)
+        public uint getNextArea(uint fileAddress, uint fileLength, uint boundary)
         {
-            ulong tempAddress = fileAddress;
-            if (boundary == 0 || boundary == ulong.MaxValue)
+            uint tempAddress = fileAddress;
+            if (boundary == 0 || boundary == uint.MaxValue)
             {
                 throw new System.ArgumentException("addressBoundary must be a power of 2");
             }
-            while (tempAddress < (fileAddress + (ulong)fileLength))
+            while (tempAddress < (fileAddress + (uint)fileLength))
             {
                 tempAddress += boundary;
             }

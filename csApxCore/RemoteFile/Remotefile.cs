@@ -1,4 +1,9 @@
 ﻿using System;
+using System.Text;
+using System.Collections.Generic;
+using RemoteFile;
+
+
 namespace RemoteFile
 {
 
@@ -6,35 +11,35 @@ namespace RemoteFile
     {
         public const ulong RMF_CMD_START_ADDR = 0x3FFFFC00;
 
-        public const int RMF_FILE_TYPE_FIXED = 0;
-        public const int RMF_FILE_TYPE_DYNAMIC = 1;
-        public const int RMF_FILE_TYPE_STREAM = 2;
+        public const uint RMF_FILE_TYPE_FIXED = 0;
+        public const uint RMF_FILE_TYPE_DYNAMIC = 1;
+        public const uint RMF_FILE_TYPE_STREAM = 2;
 
-        public const int RMF_CMD_ACK = 0;    //reserved for future use
-        public const int RMF_CMD_NACK = 1;    //reserved for future use
-        public const int RMF_CMD_EOT = 2;    //reserved for future use
-        public const int RMF_CMD_FILE_INFO = 3;
-        public const int RMF_CMD_FILE_OPEN = 10;
-        public const int RMF_CMD_FILE_CLOSE = 11;
+        public const uint RMF_CMD_ACK = 0;    //reserved for future use
+        public const uint RMF_CMD_NACK = 1;    //reserved for future use
+        public const uint RMF_CMD_EOT = 2;    //reserved for future use
+        public const uint RMF_CMD_FILE_INFO = 3;
+        public const uint RMF_CMD_FILE_OPEN = 10;
+        public const uint RMF_CMD_FILE_CLOSE = 11;
 
-        public const int RMF_DIGEST_TYPE_NONE = 0;
+        public const uint RMF_DIGEST_TYPE_NONE = 0;
 
-        public const int RMF_MSG_CONNECT = 0;
-        public const int RMF_MSG_FILEINFO = 1;
-        public const int RMF_MSG_FILEOPEN = 2;
-        public const int RMF_MSG_FILECLOSE = 3;
-        public const int RMF_MSG_WRITE_DATA = 4;
+        public const uint RMF_MSG_CONNECT = 0;
+        public const uint RMF_MSG_FILEINFO = 1;
+        public const uint RMF_MSG_FILEOPEN = 2;
+        public const uint RMF_MSG_FILECLOSE = 3;
+        public const uint RMF_MSG_WRITE_DATA = 4;
 
-        public const int RMF_FILEINFO_BASE_LEN = 48;
+        public const uint RMF_FILEINFO_BASE_LEN = 48;
     }
 
     public class File
     {
         public string name {get; set;}
-        public int length {get; set;}
-        public int fileType {get; set;}
-        public ulong address {get; set;}
-        public int digestType {get; set;}
+        public uint length {get; set;}
+        public uint fileType {get; set;}
+        public uint address {get; set;}
+        public uint digestType {get; set;}
         public byte[] digestData {get; set;}
         public bool isRemoteFile {get; set;}
         public bool isOpen {get; set;}
@@ -149,6 +154,133 @@ public static class RemoteFileUtil
         return ret;
     }
 
+    public static List<byte> packFileOpen(uint address, string byteOrder = "<")
+    {
+        List<byte> blist = new List<byte>();
+        if ((byteOrder == "<")) // Only little endian supportet at the moment
+        {
+            blist.AddRange(BitConverter.GetBytes(Constants.RMF_CMD_FILE_OPEN));
+            blist.AddRange(BitConverter.GetBytes(address));
+        }
+        else
+        { throw new ArgumentException("only byteorder '<' (Little Endian) is supported"); }
+
+        return blist;
+    }
+
+    public static uint unPackFileOpen(List<byte> data, string byteOrder = "<")
+    {
+        uint address;
+        uint cmd_type;
+        if ((byteOrder == "<")) // Only little endian supportet at the moment
+        {
+            //Expected commandtype and address
+            if (data.Count == 8)
+            {
+                cmd_type = BitConverter.ToUInt32(data.GetRange(0,4).ToArray(), 0);
+                address = BitConverter.ToUInt32(data.GetRange(4, 4).ToArray(), 0);
+                if (cmd_type != Constants.RMF_CMD_FILE_OPEN)
+                { throw new ArgumentException("Expected commandtype == RMF_CMD_FILE_OPEN"); }
+            }
+            else
+            { throw new ArgumentException("Expected commandtype and address, 8bytes"); }
+        }
+        else
+        { throw new ArgumentException("only byteorder '<' (Little Endian) is supported"); }
+
+        return address;
+    }
+
+    public static List<byte> packFileClose(uint address, string byteOrder = "<")
+    {
+        List<byte> blist = new List<byte>();
+        if ((byteOrder == "<")) // Only little endian supportet at the moment
+        {
+            blist.AddRange(BitConverter.GetBytes(Constants.RMF_CMD_FILE_CLOSE));
+            blist.AddRange(BitConverter.GetBytes(address));
+        }
+        else
+        { throw new ArgumentException("only byteorder '<' (Little Endian) is supported"); }
+
+        return blist;
+    }
+
+    public static uint unPackFileClose(List<byte> data, string byteOrder = "<")
+    {
+        uint address;
+        uint cmd_type;
+        if ((byteOrder == "<")) // Only little endian supportet at the moment
+        {
+            //Expected commandtype and address
+            if (data.Count == 8)
+            {
+                cmd_type = BitConverter.ToUInt32(data.GetRange(0,4).ToArray(), 0);
+                address = BitConverter.ToUInt32(data.GetRange(4, 4).ToArray(), 0);
+                if (cmd_type != Constants.RMF_CMD_FILE_CLOSE)
+                { throw new ArgumentException("Expected commandtype == RMF_CMD_FILE_CLOSE"); }
+            }
+            else
+            { throw new ArgumentException("Expected commandtype and address, 8bytes"); }
+        }
+        else
+        { throw new ArgumentException("only byteorder '<' (Little Endian) is supported"); }
+
+        return address;
+    }
+
+    public static List<byte> packFileInfo(File file, string byteOrder = "<")
+    {
+        if ((byteOrder != "<")) // Only little endian supportet at the moment
+        { throw new ArgumentException("only byteorder '<' (Little Endian) is supported"); }
+
+        if (file.address == uint.MaxValue)
+        {throw new ArgumentException("file doesn't contain an initialized address");}
+        else
+        {
+            List<byte> blist = new List<byte>();
+            blist.AddRange(BitConverter.GetBytes(Constants.RMF_CMD_FILE_INFO));
+            blist.AddRange(BitConverter.GetBytes(file.address));
+            blist.AddRange(BitConverter.GetBytes(file.length));
+            blist.AddRange(BitConverter.GetBytes((UInt16)file.fileType));
+            blist.AddRange(BitConverter.GetBytes((UInt16)file.digestType));
+            blist.AddRange(file.digestData);
+            blist.AddRange(ASCIIEncoding.ASCII.GetBytes(file.name));
+            blist.Add(0); // null-termination
+                
+            return blist;
+        }
+    }
+
+    public static File unPackFileInfo(List<byte> data, string byteOrder = "<")
+    {
+        if ((byteOrder != "<")) // Only little endian supportet at the moment
+        { throw new ArgumentException("only byteorder '<' (Little Endian) is supported"); }
+
+        File file = new File();
+        int baseLen = (int)Constants.RMF_FILEINFO_BASE_LEN;
+        if (data.Capacity >= baseLen)
+        {
+            uint cmdType = BitConverter.ToUInt32(data.GetRange(0,4).ToArray(), 0);
+            uint address = BitConverter.ToUInt32(data.GetRange(4,4).ToArray(), 0);
+            uint length = BitConverter.ToUInt32(data.GetRange(8,4).ToArray(), 0);
+            uint fileType = BitConverter.ToUInt16(data.GetRange(12,2).ToArray(), 0);
+            uint digestType = BitConverter.ToUInt16(data.GetRange(14,2).ToArray(), 0);
+            List<byte> digestData = data.GetRange(16,32);
+
+            List<byte> bname = data.GetRange(baseLen, data.Count- baseLen -1);
+            string name = System.Text.Encoding.ASCII.GetString(bname.ToArray());
+
+            file.address = address;
+            file.length = length;
+            file.fileType = fileType;
+            file.digestType = digestType;
+            file.digestData = digestData.ToArray();
+            file.name = name;
+        }
+
+        return file;
+        throw new NotImplementedException();
+    }
 
     public static byte oneByte(ulong val)
     {

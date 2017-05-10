@@ -1,16 +1,17 @@
 ﻿using System;
+using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
 using RemoteFile;
 using Apx;
-
+using MiscUtil.Conversion;
 
 namespace UnitTestCsApx
 {
     [TestClass]
-    public class Test_FileAndHeaders
+    public class Test_Pack_UnPack
     {
         
         [TestMethod]
@@ -144,145 +145,134 @@ namespace UnitTestCsApx
             Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
         }
 
-
+        
         [TestMethod]
-        public void initFile()
+        public void test_packFileOpen()
         {
-            RemoteFile.File testFile = new RemoteFile.File();
-
-        }
-
-
-        /*[TestMethod]
-        public void TEMPtestFiles()
-        {
-            Apx.File testFile;
-            Apx.FileMap testMap = new Apx.FileMap();
-
-            testFile = new Apx.File(); testFile.address = 0;
-            testMap.sortedAddFileToList(testFile);
-            testFile = new Apx.File(); testFile.address = 0x50;
-            testMap.sortedAddFileToList(testFile);
-            testFile = new Apx.File(); testFile.address = 0x20;
-            testMap.sortedAddFileToList(testFile);
-            
-            testMap.assignFileAddress(testFile, 0, 2, 2);
-        }
-        */
-
-        [TestMethod]
-        public void testFileMapOrder1()
-        {
-            Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
-            Apx.FileMap testMap = new Apx.FileMap();
-
-            f1 = new Apx.File(); f1.name = "test1.out"; f1.length = 6840;
-            testMap.assignFileAddressDefault(f1);
-            f2 = new Apx.File(); f2.name = "test2.in"; f2.length = 64;
-            testMap.assignFileAddressDefault(f2);
-            f3 = new Apx.File(); f3.name = "test3.apx"; f3.length = 64;
-            testMap.assignFileAddressDefault(f3);
-            f4 = new Apx.File(); f4.name = "test4.apx"; f4.length = 100;
-            testMap.assignFileAddressDefault(f4);
-            f5 = new Apx.File(); f5.name = "test5.out"; f5.length = 8000;
-            testMap.assignFileAddressDefault(f5);
-            f6 = new Apx.File(); f6.name = "test6.in"; f6.length = 400;
-            testMap.assignFileAddressDefault(f6);
-            f7 = new Apx.File(); f7.name = "test7.bin"; f7.length = 6200;
-            testMap.assignFileAddressDefault(f7);
-            f8 = new Apx.File(); f8.name = "test8.png"; f8.length = 1234;
-            testMap.assignFileAddressDefault(f8);
-
-            Assert.AreEqual(testMap._items.Count, 8);
-            Assert.AreEqual(testMap._items[0], f1);
-            Assert.AreEqual(testMap._items[1], f2);
-            Assert.AreEqual(testMap._items[2], f5);
-            Assert.AreEqual(testMap._items[3], f6);
-            Assert.AreEqual(testMap._items[4], f3);
-            Assert.AreEqual(testMap._items[5], f4);
-            Assert.AreEqual(testMap._items[6], f7);
-            Assert.AreEqual(testMap._items[7], f8);
+            List<byte> blist = new List<byte>();
+            blist = RemoteFileUtil.packFileOpen(0x12345678, "<");
+            // Address
+            Assert.AreEqual(blist[7], (byte)0x12);
+            Assert.AreEqual(blist[6], (byte)0x34);
+            Assert.AreEqual(blist[5], (byte)0x56);
+            Assert.AreEqual(blist[4], (byte)0x78);
+            // Command (RMF_CMD_FILE_OPEN == 10 / 0x0A)
+            Assert.AreEqual(blist[3], (byte)0x00);
+            Assert.AreEqual(blist[2], (byte)0x00);
+            Assert.AreEqual(blist[1], (byte)0x00);
+            Assert.AreEqual(blist[0], (byte)0x0A);
         }
 
         [TestMethod]
-        public void testFileMapOrder2()
+        public void test_unPackFileOpen()
         {
-            Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
-            Apx.FileMap testMap = new Apx.FileMap();
+            List<byte> blist = new List<byte>{0x0A, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12};
+            uint address = RemoteFileUtil.unPackFileOpen(blist, "<");
+            Assert.AreEqual(address, (uint)0x12345678);
 
-            f4 = new Apx.File(); f4.name = "test4.apx"; f4.length = 100;
-            testMap.assignFileAddressDefault(f4);
-            f1 = new Apx.File(); f1.name = "test1.out"; f1.length = 6840;
-            testMap.assignFileAddressDefault(f1);
-            f7 = new Apx.File(); f7.name = "test7.bin"; f7.length = 6200;
-            testMap.assignFileAddressDefault(f7);
-            f2 = new Apx.File(); f2.name = "test2.in"; f2.length = 64;
-            testMap.assignFileAddressDefault(f2);
-            f3 = new Apx.File(); f3.name = "test3.apx"; f3.length = 64;
-            testMap.assignFileAddressDefault(f3);
-            f5 = new Apx.File(); f5.name = "test5.out"; f5.length = 8000;
-            testMap.assignFileAddressDefault(f5);
-            f6 = new Apx.File(); f6.name = "test6.in"; f6.length = 400;
-            testMap.assignFileAddressDefault(f6);
-            f8 = new Apx.File(); f8.name = "test8.png"; f8.length = 1234;
-            testMap.assignFileAddressDefault(f8);
-
-            List<ulong> addresses = testMap.getAddressList();
-            List<string> names = testMap.getNameList();
-
-            Assert.AreEqual(testMap._items.Count, 8);
-            Assert.AreEqual(testMap._items[0], f1);
-            Assert.AreEqual(testMap._items[1], f2);
-            Assert.AreEqual(testMap._items[2], f5);
-            Assert.AreEqual(testMap._items[3], f6);
-            Assert.AreEqual(testMap._items[4], f4);
-            Assert.AreEqual(testMap._items[5], f3);
-            Assert.AreEqual(testMap._items[6], f7);
-            Assert.AreEqual(testMap._items[7], f8);
+            try
+            {
+                List<byte> blist2 = new List<byte> { 0x0B, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12 };
+                address = RemoteFileUtil.unPackFileOpen(blist2, "<");
+                Assert.Fail("An exception should have been thrown");
+            }
+            catch (ArgumentException ae)
+            {
+                Assert.AreEqual(true, (ae.Message.Length > 0));
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(
+                     string.Format("Unexpected exception of type {0} caught: {1}",
+                                    e.GetType(), e.Message)
+                );
+            }
         }
 
         [TestMethod]
-        public void testFileMapAreaFull()
+        public void test_packFileClose()
         {
-            Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
-            Apx.FileMap testMap = new Apx.FileMap();
-            bool res = false;
+            List<byte> blist = new List<byte>();
+            blist = RemoteFileUtil.packFileClose(0x12345678, "<");
+            // Address
+            Assert.AreEqual(blist[7], (byte)0x12);
+            Assert.AreEqual(blist[6], (byte)0x34);
+            Assert.AreEqual(blist[5], (byte)0x56);
+            Assert.AreEqual(blist[4], (byte)0x78);
+            // Command (RMF_CMD_FILE_CLOSE == 11 / 0x0B)
+            Assert.AreEqual(blist[3], (byte)0x00);
+            Assert.AreEqual(blist[2], (byte)0x00);
+            Assert.AreEqual(blist[1], (byte)0x00);
+            Assert.AreEqual(blist[0], (byte)0x0B);
+        }
 
-            f1 = new Apx.File(); f1.name = "test1.out"; f1.length = 0x3F00000;
-            res = testMap.assignFileAddressDefault(f1);
-            Assert.AreEqual(res, true);
-            f2 = new Apx.File(); f2.name = "test2.out"; f2.length = 0xF0000;
-            res = testMap.assignFileAddressDefault(f2);
-            Assert.AreEqual(res, true);
-            f3 = new Apx.File(); f3.name = "test3.out"; f3.length = 100;
-            res = testMap.assignFileAddressDefault(f3);
-            Assert.AreEqual(res, true);
-            f4 = new Apx.File(); f4.name = "test4.out"; f4.length = 0x500000; // Should not be added
-            res = testMap.assignFileAddressDefault(f4);
-            Assert.AreEqual(res, false);
-            f5 = new Apx.File(); f5.name = "test5.out"; f5.length = 0x495000; // Should not be added
-            res = testMap.assignFileAddressDefault(f5);
-            Assert.AreEqual(res, false);
-            f6 = new Apx.File(); f6.name = "test6.apx"; f6.length = 0x95000; // New area, should be added
-            res = testMap.assignFileAddressDefault(f6);
-            Assert.AreEqual(res, true);
-            f7 = new Apx.File(); f7.name = "test7.out"; f7.length = 100;
-            res = testMap.assignFileAddressDefault(f7);
-            Assert.AreEqual(res, true);
-            f8 = new Apx.File(); f8.name = "test8.out"; f8.length = 1234;
-            res = testMap.assignFileAddressDefault(f8);
-            Assert.AreEqual(res, true);
+        [TestMethod]
+        public void test_unPackFileClose()
+        {
+            List<byte> blist = new List<byte> { 0x0B, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12 };
+            uint address = RemoteFileUtil.unPackFileClose(blist, "<");
+            Assert.AreEqual(address, (uint)0x12345678);
 
-            List<ulong> addresses = testMap.getAddressList();
-            List<string> names = testMap.getNameList();
+            try
+            {
+                List<byte> blist2 = new List<byte> { 0x0A, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12 };
+                address = RemoteFileUtil.unPackFileClose(blist2, "<");
+                Assert.Fail("An exception should have been thrown");
+            }
+            catch (ArgumentException ae)
+            {
+                Assert.AreEqual(true, (ae.Message.Length > 0));
+            }
+            catch (Exception e)
+            {
+                Assert.Fail(
+                     string.Format("Unexpected exception of type {0} caught: {1}",
+                                    e.GetType(), e.Message)
+                );
+            }
+        }
 
-            Assert.AreEqual(testMap._items.Count, 6);
-            Assert.AreEqual(testMap._items[0], f1);
-            Assert.AreEqual(testMap._items[1], f2);
-            Assert.AreEqual(testMap._items[2], f3);
-            Assert.AreEqual(testMap._items[3], f7);
-            Assert.AreEqual(testMap._items[4], f8);
-            Assert.AreEqual(testMap._items[5], f6);
+        [TestMethod]
+        public void test_packFileInfo()
+        {
+            byte[] test = new byte[] {0x03, 0x00, 0x00, 0x00};
+            RemoteFile.File file1 = new RemoteFile.File();
+            file1.name = "test.txt";
+            file1.length = 100;
+            file1.address = 10000;
+            List<byte> data = RemoteFileUtil.packFileInfo(file1, "<");
+            Assert.AreEqual(data.Count, RemoteFile.Constants.RMF_FILEINFO_BASE_LEN + file1.name.Length + 1); // +1 null termination
+            Assert.IsTrue(data.GetRange(0, 4).SequenceEqual(new List<byte> { 0x03, 0x00, 0x00, 0x00 }));
+            Assert.IsTrue(data.GetRange(4, 4).SequenceEqual(new List<byte> { 0x10, 0x27, 0x00, 0x00 }));
+            Assert.IsTrue(data.GetRange(8, 4).SequenceEqual(new List<byte> { 0x64, 0x00, 0x00, 0x00 }));
+            Assert.IsTrue(data.GetRange(12, 4).SequenceEqual(new List<byte> { 0x00, 0x00, 0x00, 0x00 }));
+            foreach(byte b in data.GetRange(16, 32))
+            { Assert.IsTrue(b == 0); }
+            byte[] bname = data.GetRange(48, data.Count - 48 -1).ToArray(); // -1 for null termination
+            string fileName = System.Text.Encoding.ASCII.GetString(bname);
+            Assert.AreEqual("test.txt", fileName);
+            Assert.IsTrue(data[data.Count -1] == 0);
+        }
+
+        [TestMethod]
+        public void test_unPackFileInfo()
+        {
+            // Header content
+            List<byte> data = new List<byte> {0x03, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            // Digest data
+            List<byte> ddata = Enumerable.Repeat((byte)0, 32).ToList();
+            data.AddRange(ddata);
+            // Name
+            List<byte> ndata = ASCIIEncoding.ASCII.GetBytes("test.txt").ToList();
+            data.AddRange(ndata);
+            // Null termination
+            data.Add(0);
+            RemoteFile.File file = RemoteFileUtil.unPackFileInfo(data, "<");
+
+            Assert.AreEqual(file.address, (uint)10000);
+            Assert.IsTrue(file.digestData.SequenceEqual(ddata));
+            Assert.AreEqual(file.digestType, RemoteFile.Constants.RMF_DIGEST_TYPE_NONE);
+            Assert.AreEqual(file.name, "test.txt");
         }
 
     }

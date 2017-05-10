@@ -41,6 +41,11 @@
   <ItemGroup>
     <Compile Include="Apx\FileManager.cs" />
     <Compile Include="Apx\FileMap.cs" />
+    <Compile Include="Conversion\BigEndianBitConverter.cs" />
+    <Compile Include="Conversion\DoubleConverter.cs" />
+    <Compile Include="Conversion\EndianBitConverter.cs" />
+    <Compile Include="Conversion\Endianness.cs" />
+    <Compile Include="Conversion\LittleEndianBitConverter.cs" />
     <Compile Include="RemoteFile\Client.cs" />
     <Compile Include="RemoteFile\FileManager.cs" />
     <Compile Include="RemoteFile\Msg.cs" />

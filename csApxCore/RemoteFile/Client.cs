@@ -21,18 +21,22 @@ namespace RemoteFile
         
         public static void Main()
         {
-            Console.WriteLine("Starting a Client");
+            Thread.CurrentThread.Name = "MainThread";
+            Console.WriteLine("Starting a Client (" + Thread.CurrentThread.Name + ")");
 
             SocketAdapter socketAdapter = new SocketAdapter();
             FileManager fileManager = new FileManager();
 
+            Console.WriteLine("socketAdapter Guid: " + socketAdapter.InstanceID);
+            Console.WriteLine("fileManager Guid: " + fileManager.InstanceID);
+
             socketAdapter.setRecieveHandler(fileManager);
-            Thread socketAdapterThread = new Thread(new ThreadStart(socketAdapter.work));
+            Thread socketAdapterThread = new Thread(new ThreadStart(socketAdapter.worker));
             //socketAdapterThread.IsBackground = true;
             socketAdapterThread.Name = "Clients socketAdapterThread";
             socketAdapterThread.Start();
 
-            Thread fileManagerThread = new Thread(new ThreadStart(fileManager.work));
+            Thread fileManagerThread = new Thread(new ThreadStart(fileManager.worker));
             fileManagerThread.IsBackground = true;
             fileManagerThread.Name = "Clients fileManagerThread";
             fileManagerThread.Start();
