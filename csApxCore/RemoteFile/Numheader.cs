@@ -1,7 +1,79 @@
 ﻿using System;
-
+using System.Collections.Generic;
 public static class NumHeader
 {
+
+    public struct decodeReturn
+    {
+        public uint bytesParsed;
+        public uint value;
+
+    }
+
+    public static decodeReturn _decode(List<byte> data, uint mode, uint offset)
+    {
+        decodeReturn ret = new decodeReturn();
+        uint value;
+        uint end = (uint)data.Count;
+        byte b1;
+
+        if (offset+1 <= data.Count)
+        {
+            b1 = data[(int)offset];
+            if ((b1 & 0x80) == 0x80)
+            {
+                if (mode == 32)
+                {
+                    if (offset+4 <= data.Count)
+                    {
+                        List<byte> val = data.GetRange((int)offset, (int)offset + 4);
+                        val.Reverse();  // From Big endian to Little endian
+                        value = BitConverter.ToUInt32(val.ToArray(), 0);
+                        ret.value = (value & 0x7FFFFFFF);
+                    }
+                }
+                else
+                { throw new ArgumentException("Only 8 & 32b supported");  }
+            }
+            else 
+            { 
+                ret.bytesParsed = 1;
+                ret.value = b1;
+            }
+        }
+        else
+        { throw new ArgumentException("data field not long enough"); }
+
+        return ret;
+    }
+
+    public static List<byte> _encode(uint value, uint mode)
+    {
+        List<byte> data = new List<byte>();
+        
+        if (value <= 127)
+        {
+            data.Add((byte)value);
+        }
+        else
+        {
+            if (mode == 32)
+            {
+                if (value <= 0x7FFFFFFF)
+                {
+                    data.AddRange(BitConverter.GetBytes(value));
+                    data.Reverse();
+                    data[0] |= 0x80;
+                }
+                else
+                { throw new ArgumentException("value over 0x7FFFFFFF"); }
+            }
+            else
+            { throw new ArgumentException("only 8/32b mode supported"); }
+        }
+
+        return data;
+    }
 
     public static byte[] pack32(ulong inVal)
     {
