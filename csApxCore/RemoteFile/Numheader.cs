@@ -30,15 +30,18 @@ public static class NumHeader
                         val.Reverse();  // From Big endian to Little endian
                         value = BitConverter.ToUInt32(val.ToArray(), 0);
                         ret.value = (value & 0x7FFFFFFF);
+                        ret.bytesParsed = 4;
                     }
+                    else
+                    { throw new ArgumentException("data field not long enough"); }
                 }
                 else
                 { throw new ArgumentException("Only 8 & 32b supported");  }
             }
             else 
             { 
-                ret.bytesParsed = 1;
                 ret.value = b1;
+                ret.bytesParsed = 1;
             }
         }
         else

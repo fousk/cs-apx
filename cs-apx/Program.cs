@@ -20,7 +20,5 @@ namespace cs_apx
                 Thread.Sleep(1000);
             }
         }
-
-        
     }
 }
