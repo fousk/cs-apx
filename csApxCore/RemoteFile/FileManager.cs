@@ -15,6 +15,11 @@ namespace RemoteFile
         {
 
         }
+
+        public virtual void onMsgReceived(List<byte> msg)
+        {
+
+        }
     }
     public class FileManager : ReceiveHandler
     {
@@ -42,6 +47,11 @@ namespace RemoteFile
         public override void onConnected(TransmitHandler handler)
         {
             transmitHandler = handler;
+        }
+
+        public override void onMsgReceived(List<byte> msg)
+        {
+            throw new NotImplementedException();
         }
 
         public void worker()

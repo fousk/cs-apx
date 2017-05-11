@@ -44,25 +44,24 @@ namespace UnitTestCsApx
         [TestMethod]
         public void decode_32()
         {
-            NumHeader.decodeReturn ret = NumHeader._decode(new List<byte> { 0x00 }, 32, 0);
+            NumHeader.decodeReturn ret = NumHeader._decode(new List<byte> { 0x00 },0, 32);
             Assert.AreEqual(ret.value, (uint)0x00);
-            Assert.AreEqual(ret.bytesParsed, (uint)1);
-            ret = NumHeader._decode(new List<byte> { 0x7F }, 32, 0);
+            Assert.AreEqual(ret.bytesParsed, 1);
+            ret = NumHeader._decode(new List<byte> { 0x7F },0, 32);
             Assert.AreEqual(ret.value, (uint)0x7F);
-            Assert.AreEqual(ret.bytesParsed, (uint)1);
-            ret = NumHeader._decode(new List<byte> { 0x80, 0x00, 0x00, 0x80 }, 32, 0);
+            Assert.AreEqual(ret.bytesParsed, 1);
+            ret = NumHeader._decode(new List<byte> { 0x80, 0x00, 0x00, 0x80 },0, 32);
             Assert.AreEqual(ret.value, (uint)0x80);
-            Assert.AreEqual(ret.bytesParsed, (uint)4);
-            ret = NumHeader._decode(new List<byte> { 0x80, 0x00, 0x7F, 0xFF }, 32, 0);
+            Assert.AreEqual(ret.bytesParsed, 4);
+            ret = NumHeader._decode(new List<byte> { 0x80, 0x00, 0x7F, 0xFF },0, 32);
             Assert.AreEqual(ret.value, (uint)0x7FFF);
-            Assert.AreEqual(ret.bytesParsed, (uint)4);
-            ret = NumHeader._decode(new List<byte> { 0x80, 0x00, 0x80, 0x00 }, 32, 0);
+            Assert.AreEqual(ret.bytesParsed, 4);
+            ret = NumHeader._decode(new List<byte> { 0x80, 0x00, 0x80, 0x00 },0, 32);
             Assert.AreEqual(ret.value, (uint)0x8000);
-            Assert.AreEqual(ret.bytesParsed, (uint)4);
-            ret = NumHeader._decode(new List<byte> { 0xFF, 0xFF, 0xFF, 0xFF }, 32, 0);
+            Assert.AreEqual(ret.bytesParsed, 4);
+            ret = NumHeader._decode(new List<byte> { 0xFF, 0xFF, 0xFF, 0xFF },0, 32);
             Assert.AreEqual(ret.value, (uint)0x7FFFFFFF);
-            Assert.AreEqual(ret.bytesParsed, (uint)4);
-
+            Assert.AreEqual(ret.bytesParsed, 4);
         }
     }
 }

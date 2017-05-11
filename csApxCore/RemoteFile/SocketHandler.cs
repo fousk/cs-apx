@@ -27,7 +27,8 @@ namespace RemoteFile
     {
         public Guid InstanceID { get; private set; }    // Check that we use the right instance
         ReceiveHandler receiveHandler;
-        
+        bool isAcknowledgeSeen = false;
+
         static TcpListener server;
         static Socket socket = server.AcceptSocket();
         static Stream stream = new NetworkStream(socket);
@@ -59,23 +60,68 @@ namespace RemoteFile
             }
         }
 
-        public uint _parseData(List<byte> data)
+        public int _parseData(List<byte> data)
         {
-            uint pos = 0;
-            uint next;
-            uint end = (uint)data.Count;
-            while (pos < end)
+            int iBegin = 0;
+            int iNext;
+            int iEnd = data.Count;
+            while (iBegin < iEnd)
             {
-                next = _parseMessage(data, pos);
+                iNext = _parseMessage(data, iBegin);
+                if (iNext == iBegin)
+                {
+                    // wait for more data to arrive before parsing again
+                    break;
+                }
+                else if (iNext >= iBegin)
+                {
+                    iBegin = iNext;
+                }
+                else
+                {
+                    Console.WriteLine("remotefile.socket_adapter._parseData failure\n");
+                    return -1;
+                }
             }
-
-            throw new NotImplementedException();
+            return iBegin;
         }
 
-        public uint _parseMessage(List<byte> data, uint pos)
+        public int _parseMessage(List<byte> data, int iBegin)
         {
-            throw new NotImplementedException();
-            
+            NumHeader.decodeReturn ret = NumHeader._decode(data, iBegin, 32);
+            int iNext;
+            if (ret.bytesParsed == 0)
+            {
+                return iBegin;
+            }
+            else
+            {
+                iNext = iBegin + (int)ret.bytesParsed;
+                if (iNext + ret.value <= data.Count)
+                {
+                    List<byte> msg = data.GetRange(iNext, iNext + (int)ret.value);
+                    if (isAcknowledgeSeen == false)
+                    {
+                        if (msg.Count == 8)
+                        {
+                            if (msg.SequenceEqual(new byte[] { 0xbf, 0xff, 0xfc, 0x00, 0x00, 0x00, 0x00, 0x00 }))
+                            {
+                                // We are connected
+                                isAcknowledgeSeen = true;
+                                receiveHandler.onConnected(this);
+                            }
+                            else
+                            { throw new ArgumentException("expected acknowledge from apx_server but something else"); }
+                        }
+                        throw new ArgumentException("expected acknowledge from apx_server but something else");
+                    }
+                    else
+                    {
+                        receiveHandler.onMsgReceived(msg);
+                    }
+                }
+                return iBegin;
+            }
         }
 
         public void setRecieveHandler(ReceiveHandler handler)

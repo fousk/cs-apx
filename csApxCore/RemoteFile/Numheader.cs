@@ -5,28 +5,28 @@ public static class NumHeader
 
     public struct decodeReturn
     {
-        public uint bytesParsed;
+        public int bytesParsed;
         public uint value;
 
     }
 
-    public static decodeReturn _decode(List<byte> data, uint mode, uint offset)
+    public static decodeReturn _decode(List<byte> data, int offset, int mode)
     {
         decodeReturn ret = new decodeReturn();
         uint value;
-        uint end = (uint)data.Count;
+        int end = data.Count;
         byte b1;
 
         if (offset+1 <= data.Count)
         {
-            b1 = data[(int)offset];
+            b1 = data[offset];
             if ((b1 & 0x80) == 0x80)
             {
                 if (mode == 32)
                 {
                     if (offset+4 <= data.Count)
                     {
-                        List<byte> val = data.GetRange((int)offset, (int)offset + 4);
+                        List<byte> val = data.GetRange(offset, offset + 4);
                         val.Reverse();  // From Big endian to Little endian
                         value = BitConverter.ToUInt32(val.ToArray(), 0);
                         ret.value = (value & 0x7FFFFFFF);
@@ -50,7 +50,7 @@ public static class NumHeader
         return ret;
     }
 
-    public static List<byte> _encode(uint value, uint mode)
+    public static List<byte> _encode(uint value, int mode)
     {
         List<byte> data = new List<byte>();
         
