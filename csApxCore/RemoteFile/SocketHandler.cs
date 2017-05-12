@@ -28,12 +28,10 @@ namespace RemoteFile
         public Guid InstanceID { get; private set; }    // Check that we use the right instance
         ReceiveHandler receiveHandler;
         bool isAcknowledgeSeen = false;
+        bool isConnected = false;
 
-        static TcpListener server;
-        static Socket socket = server.AcceptSocket();
-        static Stream stream = new NetworkStream(socket);
-        static StreamWriter writer = new StreamWriter(stream);
-        static StreamReader reader = new StreamReader(stream);
+        static TcpClient client = new TcpClient();
+        static Stream tcpStream = client.GetStream();
 
         public SocketAdapter()
         {
@@ -42,21 +40,57 @@ namespace RemoteFile
 
         public void worker()
         {
-            Console.WriteLine("Connected " + socket.RemoteEndPoint);
-            writer.AutoFlush = true;
             List<byte> unprocessed = new List<byte>();
+            byte[] buffer = new byte[2048]; // read in chunks of 2KB
+            int bytesRead;
+            int result;
 
-            while(true)
+            using (var memStream = new MemoryStream())
             {
-                try
+                while (true)
                 {
-                    //read = reader.ReadToEnd();
-                    //unprocessed.AddRange(read.)
+                    try
+                    {
+                        while ((bytesRead = tcpStream.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            memStream.Write(buffer, 0, bytesRead);
+                        }
+                        unprocessed.AddRange(memStream.ToArray());
+                        result = _parseData(unprocessed);
+                        if (result < 0)
+                        {
+                            Console.WriteLine("TcpSocketAdapter._parseData error: " + result.ToString());
+                            break;
+                        }
+                        else if (result > 0)
+                        {
+                            unprocessed.RemoveRange(0, result);
+                        }
+                        else
+                        { 
+                            // Loop
+                        }
+                    }
+                    catch (Exception e)
+                    { Console.WriteLine(e.ToString()); }
                 }
-                catch (Exception e)
-                { Console.WriteLine(e.ToString()); }
+            }
+        }
 
-                throw new NotImplementedException();
+        public bool connect(string address, int port)
+        {
+            if (address == "localhost")
+            { address = "127.0.0.1"; }
+            System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
+            try
+            {
+                client.Connect(ipaddress, port);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
             }
         }
 
@@ -164,7 +198,7 @@ namespace RemoteFile
             byte[] package = new byte[4 + data.Count];
             lenHeader.CopyTo(package, 0);
             data.ToArray().CopyTo(package, 4);
-            socket.Send(package);
+            tcpStream.Write(package, 0, package.Length);
         }
     }
 }
