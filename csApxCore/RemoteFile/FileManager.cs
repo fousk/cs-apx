@@ -18,9 +18,10 @@ namespace RemoteFile
 
         public virtual void onMsgReceived(List<byte> msg)
         {
-
+            
         }
     }
+
     public class FileManager : ReceiveHandler
     {
         public FileMap localFileMap, remoteFileMap;
@@ -44,16 +45,6 @@ namespace RemoteFile
             remoteFileMap = setRemoteFileMap;
         }*/
 
-        public override void onConnected(TransmitHandler handler)
-        {
-            transmitHandler = handler;
-        }
-
-        public override void onMsgReceived(List<byte> msg)
-        {
-            throw new NotImplementedException();
-        }
-
         public void worker()
         {
             Msg msg;
@@ -64,8 +55,7 @@ namespace RemoteFile
                 { break; }
                 if (msg.msgType == Constants.RMF_MSG_CONNECT)
                 {
-                    // Not applicable for c# version (handled in onConnected)
-                    throw new System.NotImplementedException();
+                    throw new System.ArgumentException("Not applicable for c# version (handled in onConnected)");
                 }
                 else if (msg.msgType == Constants.RMF_MSG_FILEINFO)
                 {
@@ -92,9 +82,48 @@ namespace RemoteFile
                 }
                 else
                 {
-                    throw new System.NotImplementedException("Unknown msgType");
+                    throw new System.ArgumentException("Unknown msgType");
                 }
             }
+        }
+
+        public override void onConnected(TransmitHandler handler)
+        {
+            transmitHandler = handler;
+            /*foreach (File file in  localFileMap)
+            {
+                continue here...
+            }*/
+        }
+
+        public override void onMsgReceived(List<byte> msg)
+        {
+            RemoteFileUtil.headerReturn header = RemoteFileUtil.unpackHeader(msg.ToArray());
+            if (header.bytes_parsed > 0)
+            {
+                if (header.address == Constants.RMF_CMD_START_ADDR)
+                {
+                    _processCmd(msg.GetRange(header.bytes_parsed, msg.Count - header.bytes_parsed));
+                }
+                else if (header.address < Constants.RMF_CMD_START_ADDR)
+                {
+                    _processFileWrite(header.address, header.more_bit, msg.GetRange(header.bytes_parsed, msg.Count - header.bytes_parsed));                }
+                else
+                {
+                    throw new ArgumentException("invalid address: " + header.address.ToString());
+                }
+            }
+            // else do nothing
+        }
+
+        public void _processCmd(List<byte> cmd)
+        {   
+            throw new NotImplementedException();
+        }
+
+        public void _processFileWrite(uint address, bool more_bit, List<byte> data)
+        {
+            throw new NotImplementedException();
         }
 
         public void Enqueue(Msg msg)

@@ -13,7 +13,7 @@ namespace UnitTestCsApx
     [TestClass]
     public class Test_Pack_UnPack
     {
-        
+
         [TestMethod]
         public void TestPack32()
         {
@@ -56,7 +56,7 @@ namespace UnitTestCsApx
                 32895	    "\x80\7F"	"\x80\x00\x80\x7F"
                 2147483647	-	        "\xFF\xFF\xFF\xFF"
              */
-            ulong res = NumHeader.unpack32(new byte[] { 0x00 });
+            uint res = NumHeader.unpack32(new byte[] { 0x00 });
             Assert.IsTrue(res == 0);
             res = NumHeader.unpack32(new byte[] { 0x7F });
             Assert.IsTrue(res == 127);
@@ -121,7 +121,7 @@ namespace UnitTestCsApx
             // Longer data fields
             res = RemoteFileUtil.unpackHeader(new byte[] { 0x00, 0x00, 0x00 });
             Assert.IsTrue((res.more_bit == false) && (res.address == 0) && (res.bytes_parsed == 2));
-            res = RemoteFileUtil.unpackHeader(new byte[] { 0x00, 0x00, 0x00, 0x00});
+            res = RemoteFileUtil.unpackHeader(new byte[] { 0x00, 0x00, 0x00, 0x00 });
             Assert.IsTrue((res.more_bit == false) && (res.address == 0) && (res.bytes_parsed == 2));
             res = RemoteFileUtil.unpackHeader(new byte[] { 0x7F, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
             Assert.IsTrue((res.more_bit == true) && (res.address == 16383) && (res.bytes_parsed == 2));
@@ -131,21 +131,21 @@ namespace UnitTestCsApx
             Assert.IsTrue((res.more_bit == false) && (res.address == 1073741823) && (res.bytes_parsed == 4));
 
             // Too short data fields
-            res = RemoteFileUtil.unpackHeader(new byte[] { 0x00});
-            Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
+            res = RemoteFileUtil.unpackHeader(new byte[] { 0x00 });
+            Assert.IsTrue((res.more_bit == false) && (res.address == uint.MaxValue) && (res.bytes_parsed == 0));
             res = RemoteFileUtil.unpackHeader(new byte[] { 0x4E });
-            Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
-            res = RemoteFileUtil.unpackHeader(new byte[] { 0xC0});
-            Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
-            res = RemoteFileUtil.unpackHeader(new byte[] { 0xC0, 0x00});
-            Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
-            res = RemoteFileUtil.unpackHeader(new byte[] { 0x80, 0x00, 0x40});
-            Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
+            Assert.IsTrue((res.more_bit == false) && (res.address == uint.MaxValue) && (res.bytes_parsed == 0));
+            res = RemoteFileUtil.unpackHeader(new byte[] { 0xC0 });
+            Assert.IsTrue((res.more_bit == false) && (res.address == uint.MaxValue) && (res.bytes_parsed == 0));
+            res = RemoteFileUtil.unpackHeader(new byte[] { 0xC0, 0x00 });
+            Assert.IsTrue((res.more_bit == false) && (res.address == uint.MaxValue) && (res.bytes_parsed == 0));
+            res = RemoteFileUtil.unpackHeader(new byte[] { 0x80, 0x00, 0x40 });
+            Assert.IsTrue((res.more_bit == false) && (res.address == uint.MaxValue) && (res.bytes_parsed == 0));
             res = RemoteFileUtil.unpackHeader(new byte[] { 0x80, 0x00 });
-            Assert.IsTrue((res.more_bit == false) && (res.address == ulong.MaxValue) && (res.bytes_parsed == 0));
+            Assert.IsTrue((res.more_bit == false) && (res.address == uint.MaxValue) && (res.bytes_parsed == 0));
         }
 
-        
+
         [TestMethod]
         public void test_packFileOpen()
         {
@@ -166,7 +166,7 @@ namespace UnitTestCsApx
         [TestMethod]
         public void test_unPackFileOpen()
         {
-            List<byte> blist = new List<byte>{0x0A, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12};
+            List<byte> blist = new List<byte> { 0x0A, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12 };
             uint address = RemoteFileUtil.unPackFileOpen(blist, "<");
             Assert.AreEqual(address, (uint)0x12345678);
 
@@ -235,7 +235,7 @@ namespace UnitTestCsApx
         [TestMethod]
         public void test_packFileInfo()
         {
-            byte[] test = new byte[] {0x03, 0x00, 0x00, 0x00};
+            byte[] test = new byte[] { 0x03, 0x00, 0x00, 0x00 };
             RemoteFile.File file1 = new RemoteFile.File();
             file1.name = "test.txt";
             file1.length = 100;
@@ -246,19 +246,19 @@ namespace UnitTestCsApx
             Assert.IsTrue(data.GetRange(4, 4).SequenceEqual(new List<byte> { 0x10, 0x27, 0x00, 0x00 }));
             Assert.IsTrue(data.GetRange(8, 4).SequenceEqual(new List<byte> { 0x64, 0x00, 0x00, 0x00 }));
             Assert.IsTrue(data.GetRange(12, 4).SequenceEqual(new List<byte> { 0x00, 0x00, 0x00, 0x00 }));
-            foreach(byte b in data.GetRange(16, 32))
+            foreach (byte b in data.GetRange(16, 32))
             { Assert.IsTrue(b == 0); }
-            byte[] bname = data.GetRange(48, data.Count - 48 -1).ToArray(); // -1 for null termination
+            byte[] bname = data.GetRange(48, data.Count - 48 - 1).ToArray(); // -1 for null termination
             string fileName = System.Text.Encoding.ASCII.GetString(bname);
             Assert.AreEqual("test.txt", fileName);
-            Assert.IsTrue(data[data.Count -1] == 0);
+            Assert.IsTrue(data[data.Count - 1] == 0);
         }
 
         [TestMethod]
         public void test_unPackFileInfo()
         {
             // Header content
-            List<byte> data = new List<byte> {0x03, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            List<byte> data = new List<byte> { 0x03, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
             // Digest data
             List<byte> ddata = Enumerable.Repeat((byte)0, 32).ToList();
             data.AddRange(ddata);

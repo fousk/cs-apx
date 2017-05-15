@@ -6,7 +6,7 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-
+using System.Linq;
 
 
 namespace RemoteFile
@@ -25,37 +25,58 @@ namespace RemoteFile
 
     public class SocketAdapter : TransmitHandler
     {
-        public Guid InstanceID { get; private set; }    // Check that we use the right instance
-        ReceiveHandler receiveHandler;
-        bool isAcknowledgeSeen = false;
-        bool isConnected = false;
+        static ReceiveHandler receiveHandler;
+        static bool isAcknowledgeSeen = false;
+        static bool isConnected = false;
 
         static TcpClient client = new TcpClient();
-        static Stream tcpStream = client.GetStream();
+        static NetworkStream tcpStream; 
 
         public SocketAdapter()
-        {
-            this.InstanceID = Guid.NewGuid();
-        }
+        { }
 
         public void worker()
         {
+            Console.WriteLine("SocketAdapter worker thread started");
             List<byte> unprocessed = new List<byte>();
             byte[] buffer = new byte[2048]; // read in chunks of 2KB
-            int bytesRead;
-            int result;
+            int bytesRead = 0;
+            int bytesParsed;
 
-            using (var memStream = new MemoryStream())
+            while (true)
             {
-                while (true)
+                if (isConnected)
                 {
                     try
                     {
-                        while ((bytesRead = tcpStream.Read(buffer, 0, buffer.Length)) > 0)
+                        if (tcpStream.CanRead)
                         {
-                            memStream.Write(buffer, 0, bytesRead);
+                            byte[] readBuffer = new byte[2048];
+                            // notimplementedexception (to find these comments and clean up if it works)
+                            //using (var writer = new MemoryStream())
+                            //{
+                                //while (tcpStream.DataAvailable)
+                                //{
+                            bytesRead = tcpStream.Read(readBuffer, 0, readBuffer.Length);
+                            if (bytesRead <= 0)
+                            { break; }
+                            //writer.Write(readBuffer, 0, bytesRead);
+                            //}
+                            //unprocessed.AddRange(writer.ToArray());
+                            unprocessed.AddRange(readBuffer.Take(bytesRead));
+                                
+                            Console.WriteLine("read " + bytesRead.ToString() + " bytes");
+
+                            bytesParsed = _parseData(unprocessed);
+                            if (bytesParsed > 0)
+                            {
+                                unprocessed.RemoveRange(0, bytesParsed);
+                            }
+                            else if (bytesParsed < 0)
+                            { throw new ArgumentException("TcpSocketAdapter._parseData error "  + bytesParsed); }
+                            //}
                         }
-                        unprocessed.AddRange(memStream.ToArray());
+                        /*
                         result = _parseData(unprocessed);
                         if (result < 0)
                         {
@@ -66,32 +87,38 @@ namespace RemoteFile
                         {
                             unprocessed.RemoveRange(0, result);
                         }
-                        else
-                        { 
-                            // Loop
-                        }
+                        */
                     }
                     catch (Exception e)
                     { Console.WriteLine(e.ToString()); }
                 }
             }
+            
         }
 
         public bool connect(string address, int port)
         {
             if (address == "localhost")
-            { address = "127.0.0.1"; }
+            { address = "192.168.137.123"; }
             System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
             try
             {
                 client.Connect(ipaddress, port);
-                return true;
+                tcpStream = client.GetStream();
+                isConnected = true;
+                Console.WriteLine("Connected to: " + address + ", port: " + port.ToString());
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
                 return false;
             }
+
+            List<byte> greeting = ASCIIEncoding.ASCII.GetBytes("RMFP/1.0\nNumHeader-Format:32\n\n").ToList();
+            List<byte> msg = NumHeader._encode((uint)greeting.Count, 32);
+            msg.AddRange(greeting);
+            send(msg);
+            return true;
         }
 
         public int _parseData(List<byte> data)
@@ -102,19 +129,17 @@ namespace RemoteFile
             while (iBegin < iEnd)
             {
                 iNext = _parseMessage(data, iBegin);
-                if (iNext == iBegin)
+                if (iNext < iBegin)
                 {
-                    // wait for more data to arrive before parsing again
-                    break;
+                    throw new ArgumentException("remotefile.socket_adapter._parseData failure\n");
                 }
-                else if (iNext >= iBegin)
+                else if (iNext == iBegin)
                 {
-                    iBegin = iNext;
+                    break;  // wait for more data to arrive before parsing again                
                 }
                 else
                 {
-                    Console.WriteLine("remotefile.socket_adapter._parseData failure\n");
-                    return -1;
+                    iBegin = iNext;
                 }
             }
             return iBegin;
@@ -124,38 +149,40 @@ namespace RemoteFile
         {
             NumHeader.decodeReturn ret = NumHeader._decode(data, iBegin, 32);
             int iNext;
-            if (ret.bytesParsed == 0)
-            {
-                return iBegin;
-            }
+            if (ret.bytesParsed < 0)
+            { return ret.bytesParsed;  }
+            else if (ret.bytesParsed == 0)
+            { return iBegin; }
             else
             {
                 iNext = iBegin + (int)ret.bytesParsed;
                 if (iNext + ret.value <= data.Count)
                 {
-                    List<byte> msg = data.GetRange(iNext, iNext + (int)ret.value);
+                    List<byte> msg = data.GetRange(iNext, (int)ret.value);
                     if (isAcknowledgeSeen == false)
                     {
-                        if (msg.Count == 8)
+                        if (msg.Count == 8 && (msg.SequenceEqual(new byte[] { 0xbf, 0xff, 0xfc, 0x00, 0x00, 0x00, 0x00, 0x00 })))
                         {
-                            if (msg.SequenceEqual(new byte[] { 0xbf, 0xff, 0xfc, 0x00, 0x00, 0x00, 0x00, 0x00 }))
-                            {
-                                // We are connected
-                                isAcknowledgeSeen = true;
-                                receiveHandler.onConnected(this);
-                            }
-                            else
-                            { throw new ArgumentException("expected acknowledge from apx_server but something else"); }
+                            // We are connected
+                            isAcknowledgeSeen = true;
+                            receiveHandler.onConnected(this);
+                            return iNext + (int)ret.value;
                         }
-                        throw new ArgumentException("expected acknowledge from apx_server but something else");
+                        else
+                        { throw new ArgumentException("expected acknowledge from apx_server but something else"); }
                     }
-                    else
+                    else if (receiveHandler != null)
                     {
                         receiveHandler.onMsgReceived(msg);
+                        return iNext + (int)ret.value;
                     }
+                    else
+                    { throw new ArgumentException("receiveHandler is null"); }
                 }
-                return iBegin;
+                else
+                { return iBegin; }
             }
+            return iBegin; //Should we ever end up here?
         }
 
         public void setRecieveHandler(ReceiveHandler handler)
@@ -167,8 +194,6 @@ namespace RemoteFile
         {
             receiveHandler.onConnected(this);
         }
-        // after connect is OK
-        // handler.onConnected(this) // skickar TransmitHandler delen
 
         public override void send(byte[] header, byte[] data)
         {
@@ -193,12 +218,8 @@ namespace RemoteFile
         }
         public override void send(List<byte> data)
         {
-            // Add length header
-            byte[] lenHeader = BitConverter.GetBytes((uint)data.Count);
-            byte[] package = new byte[4 + data.Count];
-            lenHeader.CopyTo(package, 0);
-            data.ToArray().CopyTo(package, 4);
-            tcpStream.Write(package, 0, package.Length);
+            tcpStream.Write(data.ToArray(), 0, data.Count);
+            //Console.WriteLine("Sending: '" + ASCIIEncoding.ASCII.GetString(data.ToArray()) + "'");
         }
     }
 }

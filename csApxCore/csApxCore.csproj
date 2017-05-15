@@ -41,7 +41,7 @@
   <ItemGroup>
     <Compile Include="Apx\FileManager.cs" />
     <Compile Include="Apx\FileMap.cs" />
-    <Compile Include="RemoteFile\Client.cs" />
+    <Compile Include="Apx\Client.cs" />
     <Compile Include="RemoteFile\FileManager.cs" />
     <Compile Include="RemoteFile\Msg.cs" />
     <Compile Include="RemoteFile\Numheader.cs" />

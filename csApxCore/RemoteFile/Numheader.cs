@@ -78,7 +78,7 @@ public static class NumHeader
         return data;
     }
 
-    public static byte[] pack32(ulong inVal)
+    public static byte[] pack32(uint inVal)
     {
         if (inVal < 128)
         {
@@ -91,7 +91,7 @@ public static class NumHeader
             byte[] res = BitConverter.GetBytes(inVal);
             //bytes([(0x80 | ( (value >> 24) & 0xFF)),(value >> 16) & 0xFF, (value >> 8) & 0xFF, (value & 0xFF) ])
             byte[] parsed = new byte[4];
-            ulong test = inVal >> 24;
+            uint test = inVal >> 24;
             parsed[0] = BitConverter.GetBytes(0x80 | (inVal >> 24) & 0xFF)[0];
             parsed[1] = BitConverter.GetBytes((inVal >> 16) & 0xFF)[0];
             parsed[2] = BitConverter.GetBytes((inVal >> 8) & 0xFF)[0];
@@ -105,11 +105,11 @@ public static class NumHeader
     }
     //return bytes([(0x80 | ( (value >> 24) & 0xFF)),(value >> 16) & 0xFF, (value >> 8) & 0xFF, (value & 0xFF) ])
 
-    public static ulong unpack32(byte[] inArr)
+    public static uint unpack32(byte[] inArr)
     {
         if (inArr.Length == 1)
         {
-            return (ulong)inArr[0];
+            return (uint)inArr[0];
         }
         else if (inArr.Length == 4)
         {
@@ -121,7 +121,7 @@ public static class NumHeader
             temp[1] = inArr[2];
             temp[0] = inArr[3];
 
-            ulong res = BitConverter.ToUInt64(temp, 0);
+            uint res = BitConverter.ToUInt32(temp, 0);
             if (res >= 2147483648)
                 return res - 2147483648;
             else

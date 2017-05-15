@@ -9,7 +9,7 @@ namespace RemoteFile
 
     public static class Constants
     {
-        public const ulong RMF_CMD_START_ADDR = 0x3FFFFC00;
+        public const uint RMF_CMD_START_ADDR = 0x3FFFFC00;
 
         public const uint RMF_FILE_TYPE_FIXED = 0;
         public const uint RMF_FILE_TYPE_DYNAMIC = 1;
@@ -75,7 +75,7 @@ namespace RemoteFile
 
 public static class RemoteFileUtil
 {
-    public static byte[] packHeader(ulong address, bool more_bit)
+    public static byte[] packHeader(uint address, bool more_bit)
     {
         if (address < 16384)
         {
@@ -105,7 +105,7 @@ public static class RemoteFileUtil
     public struct headerReturn
     {
         public int bytes_parsed;
-        public ulong address;
+        public uint address;
         public bool more_bit;
     }
     public static headerReturn unpackHeader(byte[] data)
@@ -113,7 +113,7 @@ public static class RemoteFileUtil
         headerReturn ret = new headerReturn();
         int i = 0;
         bool more_bit = false;
-        ulong address = ulong.MaxValue;
+        uint address = uint.MaxValue;
         int b0, b1, b2, b3;
 
         if (data.Length >= 2)   // at least 2B data
@@ -130,16 +130,16 @@ public static class RemoteFileUtil
                     b2 = data[2];
                     b3 = data[3];
                     i = 4;
-                    address = (ulong)((b0 << 24) + (b1 << 16) + (b2 << 8) + b3);
+                    address = (uint)((b0 << 24) + (b1 << 16) + (b2 << 8) + b3);
                 }
             }
             else
             {
                 b0 = b0 & 0x3F;     // Remove more_bit for address conversion
-                address = (ulong)((b0 << 8) + b1);
+                address = (uint)((b0 << 8) + b1);
             }
         }
-        if (address != ulong.MaxValue)
+        if (address != uint.MaxValue)
         {
             ret.address = address;
             ret.bytes_parsed = i;
@@ -147,7 +147,7 @@ public static class RemoteFileUtil
         }
         else    // Invalid header
         {
-            ret.address = ulong.MaxValue;
+            ret.address = uint.MaxValue;
             ret.bytes_parsed = 0;
             ret.more_bit = false;
         }
@@ -279,10 +279,9 @@ public static class RemoteFileUtil
         }
 
         return file;
-        throw new NotImplementedException();
     }
 
-    public static byte oneByte(ulong val)
+    public static byte oneByte(uint val)
     {
         byte res = BitConverter.GetBytes(val)[0];
         return res;

@@ -27,13 +27,11 @@ namespace Apx
     public class FileMap : RemoteFile.FileMap
     {
         public List<File> _items = new List<File>();
-        //public List<ulong> _keys = new List<ulong>();
-
-        // define index
-
+        
         public bool insert(RemoteFile.File file)
         {
             return assignFileAddressDefault(file);
+            throw new System.NotImplementedException("remove not implemented");
         }
         
         public bool remove(RemoteFile.File file)
@@ -74,7 +72,6 @@ namespace Apx
             if ((addressBoundary & (addressBoundary - 1)) != 0)
             { throw new System.ArgumentException("addressBoundary must be a power of 2"); }
 
-            //List<ulong> checkOrderList = new List<ulong>();
             uint inFileTotLength = (uint)file.length + addressBoundary;
             uint possiblePlacement = startAddress;
             uint tempFileAddress;
@@ -120,7 +117,6 @@ namespace Apx
                         // Try with the next possible slot
                         if (tempFileAddress + (uint)tempFileLength < endAddress)
                         {
-                            // possiblePlacement = tempFileAddress + (ulong)tempFileLength;
                             possiblePlacement = getNextArea(tempFileAddress, tempFileLength, addressBoundary);
                         }
                         else
