@@ -6,8 +6,6 @@ using System.Threading;
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-using System.Linq;
-
 
 namespace RemoteFile
 {
@@ -182,7 +180,6 @@ namespace RemoteFile
                 else
                 { return iBegin; }
             }
-            return iBegin; //Should we ever end up here?
         }
 
         public void setRecieveHandler(ReceiveHandler handler)
