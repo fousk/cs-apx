@@ -50,19 +50,10 @@ namespace RemoteFile
                         if (tcpStream.CanRead)
                         {
                             byte[] readBuffer = new byte[2048];
-                            // notimplementedexception (to find these comments and clean up if it works)
-                            //using (var writer = new MemoryStream())
-                            //{
-                                //while (tcpStream.DataAvailable)
-                                //{
                             bytesRead = tcpStream.Read(readBuffer, 0, readBuffer.Length);
                             if (bytesRead <= 0)
                             { break; }
-                            //writer.Write(readBuffer, 0, bytesRead);
-                            //}
-                            //unprocessed.AddRange(writer.ToArray());
                             unprocessed.AddRange(readBuffer.Take(bytesRead));
-                                
                             Console.WriteLine("read " + bytesRead.ToString() + " bytes");
 
                             bytesParsed = _parseData(unprocessed);
@@ -72,20 +63,7 @@ namespace RemoteFile
                             }
                             else if (bytesParsed < 0)
                             { throw new ArgumentException("TcpSocketAdapter._parseData error "  + bytesParsed); }
-                            //}
                         }
-                        /*
-                        result = _parseData(unprocessed);
-                        if (result < 0)
-                        {
-                            Console.WriteLine("TcpSocketAdapter._parseData error: " + result.ToString());
-                            break;
-                        }
-                        else if (result > 0)
-                        {
-                            unprocessed.RemoveRange(0, result);
-                        }
-                        */
                     }
                     catch (Exception e)
                     { Console.WriteLine(e.ToString()); }

@@ -86,14 +86,17 @@ namespace RemoteFile
         public override void onConnected(TransmitHandler handler)
         {
             transmitHandler = handler;
+            if (localFileMap._items.Count == 0)
+            {
+                throw new NotImplementedException("no files in localFileMap, initialization not done");
+            }
             foreach (File file in  localFileMap._items)
             {
-                // Msg(UInt32 _msgType, UInt32 _msgData1, UInt32 _msgData2, List<byte> _msgData3)
-                Msg msg = new Msg(Constants.RMF_MSG_FILEINFO, (uint)0, (uint)0, RemoteFileUtil.packFileInfo(file, "<"));
-                throw new NotImplementedException("get values for 'uint _msgData1, uint _msgData2,'");
+                List<byte> fileData = RemoteFileUtil.packFileInfo(file, "<");
+                throw new NotImplementedException("Fix Msg initialization (0, 0)");
+                Msg msg = new Msg(Constants.RMF_MSG_FILEINFO, (uint)0, (uint)0, fileData);
                 msgQueue.Enqueue(msg);
             }
-            throw new NotImplementedException("");
         }
 
         public override void onMsgReceived(List<byte> msg)
