@@ -21,7 +21,9 @@ namespace Apx
         */
 
         static SocketAdapter socketAdapter = new SocketAdapter();
-        static FileManager fileManager = new FileManager();
+        static FileMap localFileMap = new FileMap();
+        static FileMap remoteFileMap = new FileMap();
+        static FileManager fileManager = new FileManager(localFileMap, remoteFileMap); // [ToDo] create real fileMaps
         static Thread socketAdapterThread;
 
         public static void Main()

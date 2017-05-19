@@ -24,7 +24,7 @@ namespace RemoteFile
 
     public class FileManager : ReceiveHandler
     {
-        public FileMap localFileMap, remoteFileMap;
+        public Apx.FileMap localFileMap, remoteFileMap;
         public List<File> requestedFiles = new List<File>();
         public string byteOrder = "<"; // use '<' for little endian, '>' for big endian
         public Guid InstanceID { get; private set; }    // Check that we use the right instance
@@ -34,17 +34,13 @@ namespace RemoteFile
         EventWaitHandle waitHandle = new AutoResetEvent(false);
         ConcurrentQueue<Msg> msgQueue = new ConcurrentQueue<Msg>();
 
-        public FileManager()
+        public FileManager(Apx.FileMap setLocalFileMap, Apx.FileMap setRemoteFileMap)
         {
             this.InstanceID = Guid.NewGuid();
-        }
-
-        /*public FileManager(FileMap setLocalFileMap, FileMap setRemoteFileMap)
-        {
             localFileMap = setLocalFileMap;
             remoteFileMap = setRemoteFileMap;
-        }*/
-
+        }
+        
         public void worker()
         {
             Msg msg;
@@ -90,10 +86,14 @@ namespace RemoteFile
         public override void onConnected(TransmitHandler handler)
         {
             transmitHandler = handler;
-            /*foreach (File file in  localFileMap)
+            foreach (File file in  localFileMap._items)
             {
-                continue here...
-            }*/
+                // Msg(UInt32 _msgType, UInt32 _msgData1, UInt32 _msgData2, List<byte> _msgData3)
+                Msg msg = new Msg(Constants.RMF_MSG_FILEINFO, (uint)0, (uint)0, RemoteFileUtil.packFileInfo(file, "<"));
+                throw new NotImplementedException("get values for 'uint _msgData1, uint _msgData2,'");
+                msgQueue.Enqueue(msg);
+            }
+            throw new NotImplementedException("");
         }
 
         public override void onMsgReceived(List<byte> msg)

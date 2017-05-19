@@ -27,7 +27,8 @@ namespace Apx
     public class FileMap : RemoteFile.FileMap
     {
         public List<File> _items = new List<File>();
-        
+        // _keys is not used in the c# version of Apx
+
         public bool insert(RemoteFile.File file)
         {
             return assignFileAddressDefault(file);

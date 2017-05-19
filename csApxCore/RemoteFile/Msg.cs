@@ -16,7 +16,7 @@ namespace RemoteFile
         public UInt32 msgData2;
         public List<byte> msgData3;
 
-        public Msg(UInt32 _msgType, UInt32 _msgData1, UInt32 _msgData2, List<byte> _msgData3)
+        public Msg(uint _msgType, uint _msgData1, uint _msgData2, List<byte> _msgData3)
         {
             msgType  = _msgType;
             msgData1 = _msgData1;

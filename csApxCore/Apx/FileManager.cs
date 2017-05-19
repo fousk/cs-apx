@@ -9,12 +9,12 @@ namespace Apx
 {
     class FileManager : RemoteFile.FileManager
     {
-        /*
+        
         public FileManager(FileMap localFileMap, FileMap remoteFileMap) : base(localFileMap, localFileMap)
         {
 
         }
-        */
+        
         public void attachNodeData()
         {
             throw new System.NotImplementedException();
