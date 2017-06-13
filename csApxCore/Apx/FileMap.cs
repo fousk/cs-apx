@@ -19,11 +19,6 @@ namespace Apx
         public const uint USER_DATA_BOUNDARY = 0x100000; //1MB, this must be a power of 2
     }
 
-    public class File : RemoteFile.File
-    {
-
-    }
-
     public class FileMap : RemoteFile.FileMap
     {
         public List<File> _items = new List<File>();
@@ -31,22 +26,29 @@ namespace Apx
 
         public bool insert(RemoteFile.File file)
         {
+            // Is this even needed anymore?
             return assignFileAddressDefault(file);
-            throw new System.NotImplementedException("remove not implemented");
+            throw new System.NotImplementedException("insert not implemented");
         }
         
         public bool remove(RemoteFile.File file)
         {
+            // Is this even needed anymore?
             // Typecast RemoteFile.File to Apx.File
             File apxFile = (File)file;
             throw new System.NotImplementedException("remove not implemented");
+        }
+        
+        public Apx.File findByAddress(uint address)
+        {
+            throw new System.NotImplementedException("findByAddress not implemented");
         }
 
         public bool assignFileAddressDefault(RemoteFile.File file)
         {
             bool res = false;
             // Typecast RemoteFile.File to Apx.File
-            File apxFile = (File)file;
+            Apx.File apxFile = (Apx.File)file;
 
             if (apxFile.name.EndsWith(".in") || apxFile.name.EndsWith(".out"))
             {

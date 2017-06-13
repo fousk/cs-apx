@@ -39,9 +39,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Apx\File.cs" />
     <Compile Include="Apx\FileManager.cs" />
     <Compile Include="Apx\FileMap.cs" />
     <Compile Include="Apx\Client.cs" />
+    <Compile Include="RemoteFile\File.cs" />
     <Compile Include="RemoteFile\FileManager.cs" />
     <Compile Include="RemoteFile\Msg.cs" />
     <Compile Include="RemoteFile\Numheader.cs" />

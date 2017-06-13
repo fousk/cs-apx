@@ -88,7 +88,7 @@ namespace RemoteFile
             transmitHandler = handler;
             if (localFileMap._items.Count == 0)
             {
-                throw new NotImplementedException("no files in localFileMap, initialization not done");
+                throw new ArgumentException("No files in localFileMap, initialization not done");
             }
             foreach (File file in  localFileMap._items)
             {
@@ -119,8 +119,52 @@ namespace RemoteFile
             // else do nothing
         }
 
-        public void _processCmd(List<byte> cmd)
+        public void _processCmd(List<byte> data)
         {   
+            if (data.Count >= 4)
+            {
+                uint cmd = BitConverter.ToUInt32(data.GetRange(0, 4).ToArray(), 0);
+                if (cmd == Constants.RMF_CMD_FILE_INFO)
+                {
+                    throw new NotImplementedException();
+                }
+                else if (cmd == Constants.RMF_CMD_FILE_OPEN)
+                {
+                    uint address = RemoteFileUtil.unPackFileOpen(data, "<");
+                    Apx.File file = localFileMap.findByAddress(address);
+                    if (file.address == uint.MaxValue)
+                    {
+                        file.open();
+                        List<byte> fileContent = file.read(0, (int)file.length);
+                        if (fileContent.Count > 0)
+                        {
+                            Msg msg = new Msg(Constants.RMF_CMD_FILE_CLOSE, file.address, 0, fileContent);
+                            msg.msgData1 = Constants.RMF_CMD_FILE_CLOSE;
+                            msg.msgData2 = file.address;
+                            msg.msgData3 = fileContent;
+
+                            msgQueue.Enqueue(msg);
+                        }
+                    }
+
+                    throw new NotImplementedException();
+                }
+                else if (cmd == Constants.RMF_CMD_FILE_CLOSE)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                { throw new ArgumentException("Unknown command, cannot process"); }
+
+
+            }
+            else
+            {
+                throw new ArgumentException("too short command to proccess");
+            }
+
+
+
             throw new NotImplementedException();
         }
 
