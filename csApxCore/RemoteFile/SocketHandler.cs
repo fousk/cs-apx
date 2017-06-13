@@ -11,12 +11,14 @@ namespace RemoteFile
 {
     public class TransmitHandler
     {
+        /*
         public virtual void send(byte[] header, byte[] data)
         { }
         public virtual void send(byte[] header, List<byte> data)
         { }
         public virtual void send(List<byte> header, List<byte> data)
         { }
+         */
         public virtual void send(List<byte> data)
         { }
     }
@@ -91,9 +93,9 @@ namespace RemoteFile
             }
 
             List<byte> greeting = ASCIIEncoding.ASCII.GetBytes("RMFP/1.0\nNumHeader-Format:32\n\n").ToList();
-            List<byte> msg = NumHeader._encode((uint)greeting.Count, 32);
-            msg.AddRange(greeting);
-            send(msg);
+            //
+            //msg.AddRange(greeting);
+            send(greeting);
             return true;
         }
 
@@ -123,7 +125,7 @@ namespace RemoteFile
 
         public int _parseMessage(List<byte> data, int iBegin)
         {
-            NumHeader.decodeReturn ret = NumHeader._decode(data, iBegin, 32);
+            NumHeader.decodeReturn ret = NumHeader.decode(data, iBegin, 32);
             int iNext;
             if (ret.bytesParsed < 0)
             { return ret.bytesParsed;  }
@@ -169,7 +171,7 @@ namespace RemoteFile
         {
             receiveHandler.onConnected(this);
         }
-
+        /*
         public override void send(byte[] header, byte[] data)
         {
             // Some functions return byteArrays as headers
@@ -183,16 +185,19 @@ namespace RemoteFile
             List<byte> newHeader = header.Cast<byte>().ToList();
             send(newHeader, data);
         }
-        public override void send(List<byte> header, List<byte> data)
+        public override void send(List<byte> header, List<byte> MsgData)
         {
             // to avoid concatenating arrays in the main code.
             List<byte> tempData = new List<byte>();
             tempData.AddRange(header);
-            tempData.AddRange(data);
+            tempData.AddRange(MsgData);
             send(tempData);
-        }
-        public override void send(List<byte> data)
+        }*/
+        public override void send(List<byte> msg)
         {
+            List<byte> data = NumHeader.encode((uint)msg.Count, 32);
+            data.AddRange(msg);
+            Console.WriteLine("sending: " + data.Count + " bytes");
             tcpStream.Write(data.ToArray(), 0, data.Count);
             //Console.WriteLine("Sending: '" + ASCIIEncoding.ASCII.GetString(data.ToArray()) + "'");
         }

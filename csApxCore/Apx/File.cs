@@ -9,12 +9,18 @@ namespace Apx
     public class File : RemoteFile.File
     {
         private Object thisLock = new Object();
+        private Byte[] data;
+
+        public File(string inName, uint inLength) : base(inName, inLength)
+        {
+            data = new byte[inLength];
+        }
 
         public List<byte> read(int offset, int len)
         {
             List<byte> list = new List<byte>();
 
-            if ((offset < 0) || (offset + len > length))
+            if ((offset < 0) || (offset + len > length) || (offset + len > data.Length))
             {
                 throw new ArgumentException("file read outside file boundary detected");
             }
@@ -22,17 +28,17 @@ namespace Apx
             {
                 lock (thisLock)
                 {
-                    list.AddRange(digestData.Skip(offset).Take(len).ToArray());
+                    list.AddRange(data.Skip(offset).Take(len).ToArray());
                 }
             }
             return list;
         }
 
-        public int write(int offset, List<byte> data)
+        public int write(int offset, List<byte> inData)
         {
             int len = 0;
 
-            if ((offset < 0) || (offset + data.Count) > length)
+            if ((offset < 0) || (offset + inData.Count) > length || (offset + inData.Count > data.Length))
             {
                 throw new ArgumentException("file write outside file boundary detected");
             }
@@ -40,9 +46,9 @@ namespace Apx
             {
                 lock (thisLock)
                 {
-                    for (int i = 0; i < data.Count; i++)
-                    { digestData[offset + i] = data[i]; }
-                    len = data.Count;
+                    for (int i = 0; i < inData.Count; i++)
+                    { data[offset + i] = data[i]; }
+                    len = inData.Count;
                 }
             }
             return len;

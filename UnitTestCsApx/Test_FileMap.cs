@@ -18,9 +18,10 @@ namespace UnitTestCsApx
         [TestMethod]
         public void testFileMapOrder1()
         {
+            /*
             Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
             Apx.FileMap testMap = new Apx.FileMap();
-
+            
             f1 = new Apx.File(); f1.name = "test1.out"; f1.length = 6840;
             testMap.assignFileAddressDefault(f1);
             f2 = new Apx.File(); f2.name = "test2.in"; f2.length = 64;
@@ -47,14 +48,18 @@ namespace UnitTestCsApx
             Assert.AreEqual(testMap._items[5], f4);
             Assert.AreEqual(testMap._items[6], f7);
             Assert.AreEqual(testMap._items[7], f8);
+            **/
+            throw new NotImplementedException("ToDo");
+
         }
 
         [TestMethod]
         public void testFileMapOrder2()
         {
+            /*
             Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
             Apx.FileMap testMap = new Apx.FileMap();
-
+            
             f4 = new Apx.File(); f4.name = "test4.apx"; f4.length = 100;
             testMap.assignFileAddressDefault(f4);
             f1 = new Apx.File(); f1.name = "test1.out"; f1.length = 6840;
@@ -84,11 +89,14 @@ namespace UnitTestCsApx
             Assert.AreEqual(testMap._items[5], f3);
             Assert.AreEqual(testMap._items[6], f7);
             Assert.AreEqual(testMap._items[7], f8);
+            */
+            throw new NotImplementedException("ToDo");
         }
 
         [TestMethod]
         public void testFileMapAreaFull()
         {
+            /*
             Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
             Apx.FileMap testMap = new Apx.FileMap();
             bool res = false;
@@ -128,6 +136,8 @@ namespace UnitTestCsApx
             Assert.AreEqual(testMap._items[3], f7);
             Assert.AreEqual(testMap._items[4], f8);
             Assert.AreEqual(testMap._items[5], f6);
+             */
+            throw new NotImplementedException("ToDo");
         }
 
     }

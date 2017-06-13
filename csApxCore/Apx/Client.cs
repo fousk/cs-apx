@@ -19,27 +19,25 @@ namespace Apx
             socketAdapter.setRecieveHandler(fileManager);
         }
         */
-
         static SocketAdapter socketAdapter = new SocketAdapter();
-        static FileMap localFileMap = new FileMap();
-        static FileMap remoteFileMap = new FileMap();
-        static FileManager fileManager = new FileManager(localFileMap, remoteFileMap); // [ToDo] create real fileMaps
+        static Apx.FileManager fileManager; // = new Apx.FileManager(); // [ToDo] create real fileMaps
         static Thread socketAdapterThread;
+        static NodeData nodeData;
 
         public static void Main()
         {
             Thread.CurrentThread.Name = "MainThread";
             Console.WriteLine("Starting a Client (" + Thread.CurrentThread.Name + ")");
 
+            nodeData = new NodeData("dummyNode", 2, 0, "APX/1.2\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n");
+            fileManager = new FileManager();
+            fileManager.attachNodeData(nodeData);
+            fileManager.start();
+
             try
             {
                 bool connectRes = connectTcp("127.0.0.1", 5000);
-                /* Fix propperly
-                Thread fileManagerThread = new Thread(new ThreadStart(fileManager.worker));
-                fileManagerThread.IsBackground = true;
-                fileManagerThread.Name = "Clients fileManagerThread";
-                fileManagerThread.Start();
-                */
+
                 while (true)
                 {
                     Thread.Sleep(1000);

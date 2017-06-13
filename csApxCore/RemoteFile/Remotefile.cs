@@ -32,14 +32,15 @@ namespace RemoteFile
 
         public const uint RMF_FILEINFO_BASE_LEN = 48;
     }
-        
+    
 }
 
 
 public static class RemoteFileUtil
 {
-    public static byte[] packHeader(uint address, bool more_bit)
+    public static List<byte> packHeader(uint address, bool more_bit)
     {
+        List<byte> ret = new List<byte>();
         if (address < 16384)
         {
             byte[] res = new byte[2] { oneByte((address >> 8) & 0x3F), oneByte(address & 0xFF) };
@@ -47,8 +48,7 @@ public static class RemoteFileUtil
             {
                 res[0] = (byte)((int)res[0] | 0x40);
             }
-            return res;
-
+            ret.AddRange(res);
         }
         else if (address < 1073741824)
         {
@@ -57,12 +57,13 @@ public static class RemoteFileUtil
             {
                 res[0] = (byte)((int)res[0] | 0x40);
             }
-            return res;
+            ret.AddRange(res);
         }
         else
         {
             throw new System.ArgumentException("input value '" + address + "' out of range");
         }
+        return ret;
     }
 
     public struct headerReturn

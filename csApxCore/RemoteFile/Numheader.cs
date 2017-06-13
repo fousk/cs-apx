@@ -10,7 +10,7 @@ public static class NumHeader
 
     }
 
-    public static decodeReturn _decode(List<byte> data, int offset, int mode)
+    public static decodeReturn decode(List<byte> data, int offset, int mode = 32)
     {
         decodeReturn ret = new decodeReturn();
         uint value;
@@ -50,7 +50,7 @@ public static class NumHeader
         return ret;
     }
 
-    public static List<byte> _encode(uint value, int mode)
+    public static List<byte> encode(uint value, int mode = 32)
     {
         List<byte> data = new List<byte>();
         

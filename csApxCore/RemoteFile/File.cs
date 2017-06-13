@@ -25,6 +25,16 @@ namespace RemoteFile
             isOpen = false;
         }
 
+        public File(string inName, uint inLength)
+        {
+            digestType = Constants.RMF_DIGEST_TYPE_NONE;
+            digestData = new byte[32];
+            isRemoteFile = false;
+            isOpen = false;
+            name = inName;
+            length = inLength;
+        }
+
         public void open()
         {
             isOpen = true;
