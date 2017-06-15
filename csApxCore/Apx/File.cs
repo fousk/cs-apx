@@ -34,7 +34,7 @@ namespace Apx
             return list;
         }
 
-        public int write(int offset, List<byte> inData)
+        public int write(uint offset, List<byte> inData, bool moreBit = false)
         {
             int len = 0;
 
@@ -47,7 +47,7 @@ namespace Apx
                 lock (thisLock)
                 {
                     for (int i = 0; i < inData.Count; i++)
-                    { data[offset + i] = data[i]; }
+                    { data[offset + i] = inData[i]; }
                     len = inData.Count;
                 }
             }

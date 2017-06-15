@@ -29,7 +29,7 @@ namespace Apx
             Thread.CurrentThread.Name = "MainThread";
             Console.WriteLine("Starting a Client (" + Thread.CurrentThread.Name + ")");
 
-            nodeData = new NodeData("dummyNode", 2, 0, "APX/1.2\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n");
+            nodeData = new NodeData("dummyNode", 2, 1, Apx.Constants.definition);
             fileManager = new FileManager();
             fileManager.attachNodeData(nodeData);
             fileManager.start();
@@ -41,7 +41,7 @@ namespace Apx
                 while (true)
                 {
                     Thread.Sleep(1000);
-                    Console.WriteLine("tick from Client: " + Thread.CurrentThread.Name);
+                    //Console.WriteLine("tick from Client: " + Thread.CurrentThread.Name);
                 }
             }
             catch (Exception e)

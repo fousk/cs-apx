@@ -17,32 +17,57 @@ namespace Apx
         public const uint USER_DATA_START = 0x20000000; //512MB, this must be a power of 2
         public const uint USER_DATA_END = 0x3FFFFC00; //Start of remote file cmd message area
         public const uint USER_DATA_BOUNDARY = 0x100000; //1MB, this must be a power of 2
-        string definition = "APX/1.2\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n";
+        public const string definition = "APX/1.2\nN\"dummyNode\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n";
     }
 
     public class FileMap : RemoteFile.FileMap
     {
-        public List<File> _items = new List<File>();
+        public List<File> fileList = new List<File>();
+        protected File lastMatch;
         // _keys is not used in the c# version of Apx
 
         public bool insert(RemoteFile.File file)
         {
+            bool res = false;
             // Is this even needed anymore?
-            return assignFileAddressDefault(file);
-            throw new System.NotImplementedException("insert not implemented");
+            if (file.address == uint.MaxValue)
+            {
+                res = assignFileAddressDefault(file);
+                if (res)
+                { sortedAddFileToList((Apx.File)file); }
+                else
+                { throw new ArgumentException("insert failed, no address found"); }
+                
+            }
+            else
+            { sortedAddFileToList((Apx.File)file); }
+
+            return res;
         }
         
         public bool remove(RemoteFile.File file)
         {
             // Is this even needed anymore?
             // Typecast RemoteFile.File to Apx.File
-            File apxFile = (File)file;
+            Apx.File apxFile = (Apx.File)file;
             throw new System.NotImplementedException("remove not implemented");
         }
         
         public Apx.File findByAddress(uint address)
         {
-            throw new System.NotImplementedException("findByAddress not implemented");
+            if ((lastMatch != null) && (address >= lastMatch.address) && (address < lastMatch.address + lastMatch.length))
+            {
+                return lastMatch;
+            }
+            foreach (File file in fileList)
+            {
+                if ((address >= file.address) && (address < file.address + file.length))
+                {
+                    lastMatch = file;
+                    return file;
+                }
+            }
+            return null;
         }
 
         public bool assignFileAddressDefault(RemoteFile.File file)
@@ -82,26 +107,26 @@ namespace Apx
             uint tempFileLength;
 
             // Tick once if there are no items in list
-            for (int i = 0; i <= _items.Count; i++)
+            for (int i = 0; i <= fileList.Count; i++)
             {
-                if (_items.Count == 0) // No files added yet
+                if (fileList.Count == 0) // No files added yet
                 {
                     tempFileAddress = endAddress;
                     tempFileLength = 0; 
                 }
-                else if ((i == 0) && (_items[i].address >= endAddress))
+                else if ((i == 0) && (fileList[i].address >= endAddress))
                 {
                     // For the first step the tempFile might be in a segment with higher address
                     // than the one we are interested in
                     tempFileAddress = endAddress;
                     tempFileLength = 0;
                 }
-                else if (i < _items.Count)
+                else if (i < fileList.Count)
                 {
-                    tempFileAddress = _items[i].address;
-                    tempFileLength = _items[i].length;
+                    tempFileAddress = fileList[i].address;
+                    tempFileLength = fileList[i].length;
                 }
-                else    // i = _items.Count, last tick
+                else    // i = fileList.Count, last tick
                 {
                     tempFileAddress = endAddress;
                     tempFileLength = 0;
@@ -131,7 +156,6 @@ namespace Apx
             if ((possiblePlacement >= startAddress) && (possiblePlacement + inFileTotLength < endAddress))
             { 
                 file.address = possiblePlacement;
-                sortedAddFileToList(file);
                 return true; 
             }
             else
@@ -140,16 +164,16 @@ namespace Apx
 
         public void sortedAddFileToList(File file)
         {
-            _items.Add(file);
-            _items.Sort((a, b) => a.address.CompareTo(b.address));
+            fileList.Add(file);
+            fileList.Sort((a, b) => a.address.CompareTo(b.address));
         }
 
         public List<string> getNameList()
         {
             List<string> temp = new List<string>();
-            for (int i = 0; i < _items.Count; i++)
+            for (int i = 0; i < fileList.Count; i++)
             {
-                temp.Add(_items[i].name);
+                temp.Add(fileList[i].name);
             }
             return temp;
         }
@@ -157,9 +181,9 @@ namespace Apx
         public List<uint> getAddressList()
         {
             List<uint> temp = new List<uint>();
-            for (int i = 0; i < _items.Count; i++)
+            for (int i = 0; i < fileList.Count; i++)
             {
-                temp.Add(_items[i].address);
+                temp.Add(fileList[i].address);
             }
             return temp;
         }

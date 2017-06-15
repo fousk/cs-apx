@@ -38,7 +38,7 @@ namespace RemoteFile
 
 public static class RemoteFileUtil
 {
-    public static List<byte> packHeader(uint address, bool more_bit)
+    public static List<byte> packHeader(uint address, bool more_bit = false)
     {
         List<byte> ret = new List<byte>();
         if (address < 16384)

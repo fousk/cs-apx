@@ -23,12 +23,12 @@ namespace Apx
         {
             if (nodeData.inPortDataFile != null)
             {
-                attachLocalFile(nodeData.inPortDataFile);
-                Console.WriteLine(nodeData.inPortDataFile.name + " address: " + nodeData.inPortDataFile.address);
+                requestedFiles.Add(nodeData.inPortDataFile);
             }
             if (nodeData.outPortDataFile != null)
             {
-                requestedFiles.Add(nodeData.outPortDataFile);
+                attachLocalFile(nodeData.outPortDataFile);
+                Console.WriteLine(nodeData.outPortDataFile.name + " address: " + nodeData.outPortDataFile.address); 
             }
             if (nodeData.definitionFile != null)
             {
@@ -50,11 +50,11 @@ namespace Apx
         public override void onConnected(TransmitHandler handler)
         {
             transmitHandler = handler;
-            if (localFileMap._items.Count == 0)
+            if (localFileMap.fileList.Count == 0)
             {
                 throw new ArgumentException("No files in localFileMap, initialization not done");
             }
-            foreach (File file in localFileMap._items)
+            foreach (File file in localFileMap.fileList)
             {
                 Console.WriteLine(file.name);
 
@@ -66,6 +66,7 @@ namespace Apx
             }
         }
 
+        // Handles received messages
         protected override void processMessage(Msg msg)
         {
             if (msg.msgType == RemoteFile.Constants.RMF_MSG_CONNECT)
@@ -75,35 +76,44 @@ namespace Apx
             else if (msg.msgType == RemoteFile.Constants.RMF_MSG_FILEINFO)
             {
                 Apx.File file = (Apx.File)msg.msgData3;
-                Console.WriteLine("Name of file: " + file.name);
+                Console.WriteLine("processMessage, Name of file: " + file.name);
                 
                 List<byte> data = RemoteFileUtil.packHeader(RemoteFile.Constants.RMF_CMD_START_ADDR, false);
                 List<byte> payload = RemoteFileUtil.packFileInfo(file, "<");
                 data.AddRange(payload);
 
                 if (transmitHandler != null)
-                {
-                    transmitHandler.send(data);
-                }
-                
+                { transmitHandler.send(data); }
             }
-            /*
-            else if (msg.msgType == Constants.RMF_MSG_WRITE_DATA)
+            else if (msg.msgType == RemoteFile.Constants.RMF_MSG_WRITE_DATA)
             {
-                byte[] header = RemoteFileUtil.packHeader(msg.msgData1, false);
+                uint address = msg.msgData1;
+                List<byte> data = RemoteFileUtil.packHeader(address); 
+                List<byte> payload = (List<byte>)msg.msgData3;
+                data.AddRange(payload);
+
                 if (transmitHandler != null)
-                {
-                    transmitHandler.send(header, msg.msgData3);
-                }
+                { transmitHandler.send(data); }
             }
-            else if (msg.msgType == Constants.RMF_MSG_FILEOPEN)
+            else if (msg.msgType == RemoteFile.Constants.RMF_MSG_FILEOPEN)
             {
-                byte[] header = RemoteFileUtil.packHeader(Constants.RMF_CMD_START_ADDR, false);
-                List<byte> data = RemoteFileUtil.packFileOpen(msg.msgData1);
+                List<byte> data = RemoteFileUtil.packHeader(RemoteFile.Constants.RMF_CMD_START_ADDR);
+                List<byte> payload = RemoteFileUtil.packFileOpen(msg.msgData1);
+                data.AddRange(payload);
+
                 if (transmitHandler != null)
-                { transmitHandler.send(header, msg.msgData3); }
+                { transmitHandler.send(data); }
+
+                /*List<byte> payload = (List<byte>)msg.msgData3;
+                Console.WriteLine("processMessage, Data of length " + payload.Count);
+
+                List<byte> data = RemoteFileUtil.packHeader(msg.msgData1, false);
+                data.AddRange(payload);
+
+                if (transmitHandler != null)
+                { transmitHandler.send(data); }
+                 */
             }
-             */
             else
             {
                 throw new System.ArgumentException("Unknown msgType");
@@ -117,28 +127,45 @@ namespace Apx
                 uint cmd = BitConverter.ToUInt32(data.GetRange(0, 4).ToArray(), 0);
                 if (cmd == RemoteFile.Constants.RMF_CMD_FILE_INFO)
                 {
-                    throw new NotImplementedException();
+                    RemoteFile.File remoteFile = RemoteFileUtil.unPackFileInfo(data);
+                    for (int i = 0; i < requestedFiles.Count; i++)
+                    {
+                        if (requestedFiles[i].name == remoteFile.name)
+                        {
+                            requestedFiles[i].address = remoteFile.address;
+                            requestedFiles[i].fileType= remoteFile.fileType;
+                            requestedFiles[i].digestType= remoteFile.digestType;
+                            requestedFiles[i].digestData= remoteFile.digestData;
+                            requestedFiles[i].open();
+                            remoteFileMap.insert(requestedFiles[i]);
+                            Msg msg = new Msg(RemoteFile.Constants.RMF_MSG_FILEOPEN, 0, 0, requestedFiles[i].address);
+                            requestedFiles.RemoveAt(i);
+                            msgQueue.Add(msg);
+                        }
+                        else
+                        {
+                            remoteFileMap.insert(remoteFile);
+                        }
+                    }
+
                 }
                 else if (cmd == RemoteFile.Constants.RMF_CMD_FILE_OPEN)
                 {
                     uint address = RemoteFileUtil.unPackFileOpen(data, "<");
+                    Console.WriteLine("received open command, address: " + address);
                     Apx.File file = localFileMap.findByAddress(address);
-                    if (file.address == uint.MaxValue)
+                    if (file != null)
                     {
+                        Console.WriteLine("received open command, name: " + file.name);
                         file.open();
                         List<byte> fileContent = file.read(0, (int)file.length);
                         if (fileContent.Count > 0)
                         {
-                            Msg msg = new Msg(RemoteFile.Constants.RMF_CMD_FILE_CLOSE, file.address, 0, fileContent);
-                            msg.msgData1 = RemoteFile.Constants.RMF_CMD_FILE_CLOSE;
-                            msg.msgData2 = file.address;
-                            msg.msgData3 = fileContent;
-
+                            Msg msg = new Msg(RemoteFile.Constants.RMF_MSG_WRITE_DATA, file.address, 0, fileContent);
                             msgQueue.Add(msg);
                         }
                     }
 
-                    throw new NotImplementedException();
                 }
                 else if (cmd == RemoteFile.Constants.RMF_CMD_FILE_CLOSE)
                 {
@@ -153,13 +180,28 @@ namespace Apx
             {
                 throw new ArgumentException("too short command to proccess");
             }
-
-            throw new NotImplementedException();
         }
 
         protected override void _processFileWrite(uint address, bool more_bit, List<byte> data)
         {
-            throw new NotImplementedException();
+            File remoteFile = remoteFileMap.findByAddress(address);
+            if ((remoteFile != null) && (remoteFile.isOpen == true))
+            {
+                int offset = (int)address - (int)remoteFile.address;
+                if ((offset >= 0) && (offset+data.Count <= remoteFile.length))
+                {
+                    remoteFile.write((uint)offset, data, more_bit);
+                    Console.WriteLine("Wrote " + data.Count + " bytes to address: " + address);
+                }
+                else
+                {
+                    throw new ArgumentException("_processFileWrite couldn't write");
+                }
+            }
+            else
+            {
+                Console.WriteLine("_processFileWrite: Nothing written");
+            }
         }
     }
 }

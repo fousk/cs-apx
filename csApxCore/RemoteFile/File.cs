@@ -23,6 +23,7 @@ namespace RemoteFile
             digestData = new byte[32];
             isRemoteFile = false;
             isOpen = false;
+            address = uint.MaxValue;
         }
 
         public File(string inName, uint inLength)
@@ -33,6 +34,7 @@ namespace RemoteFile
             isOpen = false;
             name = inName;
             length = inLength;
+            address = uint.MaxValue;
         }
 
         public void open()

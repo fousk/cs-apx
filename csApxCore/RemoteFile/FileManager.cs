@@ -91,7 +91,8 @@ namespace RemoteFile
                 }
                 else if (header.address < Constants.RMF_CMD_START_ADDR)
                 {
-                    _processFileWrite(header.address, header.more_bit, msg.GetRange(header.bytes_parsed, msg.Count - header.bytes_parsed));                }
+                    _processFileWrite(header.address, header.more_bit, msg.GetRange(header.bytes_parsed, msg.Count - header.bytes_parsed));                
+                }
                 else
                 {
                     throw new ArgumentException("invalid address: " + header.address.ToString());

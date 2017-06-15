@@ -56,47 +56,21 @@ namespace RemoteFile
                             if (bytesRead <= 0)
                             { break; }
                             unprocessed.AddRange(readBuffer.Take(bytesRead));
-                            Console.WriteLine("read " + bytesRead.ToString() + " bytes");
-
                             bytesParsed = _parseData(unprocessed);
+                            // Console.WriteLine("- bytesParsed" + bytesParsed);
                             if (bytesParsed > 0)
                             {
                                 unprocessed.RemoveRange(0, bytesParsed);
                             }
                             else if (bytesParsed < 0)
                             { throw new ArgumentException("TcpSocketAdapter._parseData error "  + bytesParsed); }
-                        }
+}
                     }
                     catch (Exception e)
                     { Console.WriteLine(e.ToString()); }
                 }
             }
             
-        }
-
-        public bool connect(string address, int port)
-        {
-            if (address == "localhost")
-            { address = "192.168.137.123"; }
-            System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
-            try
-            {
-                client.Connect(ipaddress, port);
-                tcpStream = client.GetStream();
-                isConnected = true;
-                Console.WriteLine("Connected to: " + address + ", port: " + port.ToString());
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-                return false;
-            }
-
-            List<byte> greeting = ASCIIEncoding.ASCII.GetBytes("RMFP/1.0\nNumHeader-Format:32\n\n").ToList();
-            //
-            //msg.AddRange(greeting);
-            send(greeting);
-            return true;
         }
 
         public int _parseData(List<byte> data)
@@ -162,6 +136,31 @@ namespace RemoteFile
             }
         }
 
+        public bool connect(string address, int port)
+        {
+            if (address == "localhost")
+            { address = "192.168.137.123"; }
+            System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
+            try
+            {
+                client.Connect(ipaddress, port);
+                tcpStream = client.GetStream();
+                isConnected = true;
+                Console.WriteLine("Connected to: " + address + ", port: " + port.ToString());
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+                return false;
+            }
+
+            List<byte> greeting = ASCIIEncoding.ASCII.GetBytes("RMFP/1.0\nNumHeader-Format:32\n\n").ToList();
+            //
+            //msg.AddRange(greeting);
+            send(greeting);
+            return true;
+        }
+
         public void setRecieveHandler(ReceiveHandler handler)
         {
             receiveHandler = handler;
@@ -171,35 +170,14 @@ namespace RemoteFile
         {
             receiveHandler.onConnected(this);
         }
-        /*
-        public override void send(byte[] header, byte[] data)
-        {
-            // Some functions return byteArrays as headers
-            List<byte> newHeader = header.Cast<byte>().ToList();
-            List<byte> newData = data.Cast<byte>().ToList();
-            send(newHeader, newData);
-        }
-        public override void send(byte[] header, List<byte> data)
-        {
-            // Some functions return byteArrays as headers
-            List<byte> newHeader = header.Cast<byte>().ToList();
-            send(newHeader, data);
-        }
-        public override void send(List<byte> header, List<byte> MsgData)
-        {
-            // to avoid concatenating arrays in the main code.
-            List<byte> tempData = new List<byte>();
-            tempData.AddRange(header);
-            tempData.AddRange(MsgData);
-            send(tempData);
-        }*/
+
         public override void send(List<byte> msg)
         {
             List<byte> data = NumHeader.encode((uint)msg.Count, 32);
             data.AddRange(msg);
             Console.WriteLine("sending: " + data.Count + " bytes");
             tcpStream.Write(data.ToArray(), 0, data.Count);
-            //Console.WriteLine("Sending: '" + ASCIIEncoding.ASCII.GetString(data.ToArray()) + "'");
+            Console.WriteLine("_Data_" + Encoding.Default.GetString(data.ToArray()) + "_End_");
         }
     }
 }
