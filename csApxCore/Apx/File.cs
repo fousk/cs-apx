@@ -6,10 +6,18 @@ using System.Threading.Tasks;
 
 namespace Apx
 {
+
+    public interface FileEventHandler   //NodeDataHandler in other languages
+    {
+        void onFileWrite(File file, uint offset, List<byte> data);
+    }
+
+
     public class File : RemoteFile.File
     {
         private Object thisLock = new Object();
         private Byte[] data;
+        private FileEventHandler fileEventHandler;
 
         public File(string inName, uint inLength) : base(inName, inLength)
         {
@@ -50,8 +58,19 @@ namespace Apx
                     { data[offset + i] = inData[i]; }
                     len = inData.Count;
                 }
+                if (fileEventHandler != null)
+                {
+                    fileEventHandler.onFileWrite(this, offset, inData);
+                }
+
             }
+            Console.WriteLine("Data after write: " + BitConverter.ToString(data));
             return len;
+        }
+
+        public void setFileEventHandler(FileEventHandler eventHandler)
+        {
+            fileEventHandler = eventHandler;
         }
     }
 }

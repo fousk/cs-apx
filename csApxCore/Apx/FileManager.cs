@@ -191,7 +191,6 @@ namespace Apx
                 if ((offset >= 0) && (offset+data.Count <= remoteFile.length))
                 {
                     remoteFile.write((uint)offset, data, more_bit);
-                    Console.WriteLine("Wrote " + data.Count + " bytes to address: " + address);
                 }
                 else
                 {

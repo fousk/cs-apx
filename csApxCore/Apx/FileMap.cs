@@ -17,7 +17,9 @@ namespace Apx
         public const uint USER_DATA_START = 0x20000000; //512MB, this must be a power of 2
         public const uint USER_DATA_END = 0x3FFFFC00; //Start of remote file cmd message area
         public const uint USER_DATA_BOUNDARY = 0x100000; //1MB, this must be a power of 2
-        public const string definition = "APX/1.2\nN\"dummyNode\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n";
+        //public const string definition = "APX/1.2\nN\"dummyNode\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n";
+        public const string definition = "APX/1.2\nN\"csApxClient\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\nR\"VehicleMode\"C:=255\n\n";
+        public const string defaultDefinitionPath = "C:\\1_Provning\\APX\\cs-apx\\ApxDefinition.txt";
     }
 
     public class FileMap : RemoteFile.FileMap

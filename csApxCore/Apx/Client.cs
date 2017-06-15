@@ -29,7 +29,10 @@ namespace Apx
             Thread.CurrentThread.Name = "MainThread";
             Console.WriteLine("Starting a Client (" + Thread.CurrentThread.Name + ")");
 
-            nodeData = new NodeData("dummyNode", 2, 1, Apx.Constants.definition);
+            //nodeData = new NodeData("dummyNode", 2, 1, Apx.Constants.definition);
+            //nodeData = new NodeData("dummyNode", 3, 1, Apx.Constants.definition);
+            nodeData = new NodeData();
+
             fileManager = new FileManager();
             fileManager.attachNodeData(nodeData);
             fileManager.start();
