@@ -44,6 +44,7 @@
     <Compile Include="Apx\FileMap.cs" />
     <Compile Include="Apx\Client.cs" />
     <Compile Include="Apx\NodeData.cs" />
+    <Compile Include="Apx\NodeDataSignaling.cs" />
     <Compile Include="RemoteFile\File.cs" />
     <Compile Include="RemoteFile\FileManager.cs" />
     <Compile Include="RemoteFile\Msg.cs" />

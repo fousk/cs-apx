@@ -57,6 +57,7 @@
     <Compile Include="Test_Pack_UnPack.cs" />
     <Compile Include="Test_FileMap.cs" />
     <Compile Include="Test_encode_decode.cs" />
+    <Compile Include="Test_signalDecoding.cs" />
     <Compile Include="Test_template.cs" />
   </ItemGroup>
   <Choose>

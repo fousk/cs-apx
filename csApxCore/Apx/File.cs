@@ -9,7 +9,7 @@ namespace Apx
 
     public interface FileEventHandler   //NodeDataHandler in other languages
     {
-        void onFileWrite(File file, uint offset, List<byte> data);
+        void onFileWrite(File file, uint offset, int dataLen);
     }
 
 
@@ -22,6 +22,7 @@ namespace Apx
         public File(string inName, uint inLength) : base(inName, inLength)
         {
             data = new byte[inLength];
+            length = inLength;
         }
 
         public List<byte> read(int offset, int len)
@@ -60,11 +61,11 @@ namespace Apx
                 }
                 if (fileEventHandler != null)
                 {
-                    fileEventHandler.onFileWrite(this, offset, inData);
+                    fileEventHandler.onFileWrite(this, offset, inData.Count);
                 }
 
             }
-            Console.WriteLine("Data after write: " + BitConverter.ToString(data));
+            //Console.WriteLine("Data after write: " + BitConverter.ToString(data));
             return len;
         }
 

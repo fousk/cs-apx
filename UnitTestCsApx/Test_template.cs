@@ -10,7 +10,7 @@ using Apx;
 namespace UnitTestCsApx
 {
     [TestClass]
-    public class Test_template
+    public class Test_template 
     {
         [TestMethod]
         public void TestMethod1()

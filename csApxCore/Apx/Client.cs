@@ -39,8 +39,8 @@ namespace Apx
 
             try
             {
-                bool connectRes = connectTcp("127.0.0.1", 5000);
-
+                //bool connectRes = connectTcp("127.0.0.1", 5000);
+                bool connectRes = connectTcp("192.168.137.123", 5000);
                 while (true)
                 {
                     Thread.Sleep(1000);

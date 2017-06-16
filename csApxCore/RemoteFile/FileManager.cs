@@ -84,7 +84,7 @@ namespace RemoteFile
             RemoteFileUtil.headerReturn header = RemoteFileUtil.unpackHeader(msg.ToArray());
             if (header.bytes_parsed > 0)
             {
-                Console.WriteLine("got message with: " + msg.Count + " bytes");
+                //Console.WriteLine("got message with: " + msg.Count + " bytes");
                 if (header.address == Constants.RMF_CMD_START_ADDR)
                 {
                     _processCmd(msg.GetRange(header.bytes_parsed, msg.Count - header.bytes_parsed));

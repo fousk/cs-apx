@@ -194,7 +194,7 @@ namespace Apx
                 }
                 else
                 {
-                    throw new ArgumentException("_processFileWrite couldn't write");
+                    throw new ArgumentException("_processFileWrite couldn't write (outside of memory)");
                 }
             }
             else
