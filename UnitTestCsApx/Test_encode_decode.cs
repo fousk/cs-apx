@@ -13,7 +13,7 @@ namespace UnitTestCsApx
     public class Test_encode_decode
     {
         [TestMethod]
-        public void encode_32()
+        public void Test_encode_32()
         {
             byte[] res = NumHeader.pack32(0x00);
             Assert.IsTrue(res.SequenceEqual(new byte[] { 0x00 }));
@@ -42,7 +42,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void decode_32()
+        public void Test_decode_32()
         {
             NumHeader.decodeReturn ret = NumHeader.decode(new List<byte> { 0x00 },0, 32);
             Assert.AreEqual(ret.value, (uint)0x00);

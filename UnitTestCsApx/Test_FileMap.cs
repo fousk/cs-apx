@@ -16,7 +16,7 @@ namespace UnitTestCsApx
     public class Test_FileMap
     {
         [TestMethod]
-        public void testFileMapOrder1()
+        public void Test_FileMapOrder1()
         {
             Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
             Apx.FileMap testMap = new Apx.FileMap();
@@ -59,7 +59,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void testFileMapOrder2()
+        public void Test_FileMapOrder2()
         {
             Apx.File f1, f2, f3, f4, f5, f6, f7, f8;
             Apx.FileMap testMap = new Apx.FileMap();
@@ -105,7 +105,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void testFileMapAreaFull()
+        public void Test_FileMapAreaFull()
         {
             
             Apx.File f1, f2, f3, f4, f5, f6, f7, f8;

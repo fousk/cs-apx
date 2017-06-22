@@ -15,7 +15,7 @@ namespace UnitTestCsApx
     {
 
         [TestMethod]
-        public void TestPack32()
+        public void Test_Pack32()
         {
             /* Example table from documentation
              * Value	    NumHeader16	NumHeader32
@@ -44,7 +44,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void TestUnPack32()
+        public void Test_UnPack32()
         {
             /* Example table from documentation
              * Value	    NumHeader16	NumHeader32
@@ -73,7 +73,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void packHeader()
+        public void Test_packHeader()
         {
             /*
             byte[] res = RemoteFileUtil.packHeader(0, false);
@@ -98,7 +98,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void unpackHeader()
+        public void Test_unpackHeader()
         {
             // Valid data
             RemoteFileUtil.headerReturn res = RemoteFileUtil.unpackHeader(new byte[] { 0x00, 0x00 });
@@ -149,7 +149,7 @@ namespace UnitTestCsApx
 
 
         [TestMethod]
-        public void test_packFileOpen()
+        public void Test_packFileOpen()
         {
             List<byte> blist = new List<byte>();
             blist = RemoteFileUtil.packFileOpen(0x12345678, "<");
@@ -166,7 +166,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void test_unPackFileOpen()
+        public void Test_unPackFileOpen()
         {
             List<byte> blist = new List<byte> { 0x0A, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12 };
             uint address = RemoteFileUtil.unPackFileOpen(blist, "<");
@@ -192,7 +192,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void test_packFileClose()
+        public void Test_packFileClose()
         {
             List<byte> blist = new List<byte>();
             blist = RemoteFileUtil.packFileClose(0x12345678, "<");
@@ -209,7 +209,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void test_unPackFileClose()
+        public void Test_unPackFileClose()
         {
             List<byte> blist = new List<byte> { 0x0B, 0x00, 0x00, 0x00, 0x78, 0x56, 0x34, 0x12 };
             uint address = RemoteFileUtil.unPackFileClose(blist, "<");
@@ -235,7 +235,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void test_packFileInfo()
+        public void Test_packFileInfo()
         {
             byte[] test = new byte[] { 0x03, 0x00, 0x00, 0x00 };
             RemoteFile.File file1 = new RemoteFile.File();
@@ -257,7 +257,7 @@ namespace UnitTestCsApx
         }
 
         [TestMethod]
-        public void test_unPackFileInfo()
+        public void Test_unPackFileInfo()
         {
             // Header content
             List<byte> data = new List<byte> { 0x03, 0x00, 0x00, 0x00, 0x10, 0x27, 0x00, 0x00, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };

@@ -1,1 +1,1 @@
-CS-APX is under development and will not work (yet)
+CS-APX is under development. Connection to server and reading of signals is implemented.

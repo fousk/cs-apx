@@ -13,7 +13,7 @@ namespace UnitTestCsApx
     public class Test_template 
     {
         [TestMethod]
-        public void TestMethod1()
+        public void Test_Method1()
         {
         }
     }
