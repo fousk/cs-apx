@@ -31,7 +31,7 @@ namespace Apx
 
             //nodeData = new NodeData("dummyNode", 2, 1, Apx.Constants.definition);
             //nodeData = new NodeData("dummyNode", 3, 1, Apx.Constants.definition);
-            nodeData = new NodeData();
+            nodeData = new NodeData("startupPath");
 
             fileManager = new FileManager();
             fileManager.attachNodeData(nodeData);

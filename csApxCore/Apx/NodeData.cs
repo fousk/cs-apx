@@ -35,6 +35,10 @@ namespace Apx
 
             if (path == "default")
             { path = Apx.Constants.defaultDefinitionPath; }
+            else if (path == "startupPath")
+            {
+                path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\ApxDefinition.txt";
+            }
             string readContents = "";
             
             using (StreamReader streamReader = new StreamReader(path, Encoding.UTF8))

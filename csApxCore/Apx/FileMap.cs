@@ -19,7 +19,8 @@ namespace Apx
         public const uint USER_DATA_BOUNDARY = 0x100000; //1MB, this must be a power of 2
         //public const string definition = "APX/1.2\nN\"dummyNode\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n";
         //public const string definition = "APX/1.2\nN\"csApxClient\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\nR\"VehicleMode\"C:=255\n\n";
-        public const string defaultDefinitionPath = "C:\\1_Provning\\APX\\cs-apx\\ApxDefinition.txt";
+        public const string defaultDefinitionPath = "C:\\1_Provning\\APX\\cs-apx\\cs-apx\\bin\\Debug\\ApxDefinition.txt";
+        
     }
 
     public class FileMap : RemoteFile.FileMap
@@ -37,12 +38,13 @@ namespace Apx
                 res = assignFileAddressDefault(file);
                 if (res)
                 { sortedAddFileToList((Apx.File)file); }
-                else
-                { throw new ArgumentException("insert failed, no address found"); }
-                
+                // else return false;
             }
             else
-            { sortedAddFileToList((Apx.File)file); }
+            { 
+                sortedAddFileToList((Apx.File)file);
+                res = true;
+            }
 
             return res;
         }
