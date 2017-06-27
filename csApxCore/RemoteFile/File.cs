@@ -17,6 +17,7 @@ namespace RemoteFile
         public bool isRemoteFile { get; set; }
         public bool isOpen { get; set; }
 
+
         public File()
         {
             digestType = Constants.RMF_DIGEST_TYPE_NONE;
@@ -25,6 +26,7 @@ namespace RemoteFile
             isOpen = false;
             address = uint.MaxValue;
         }
+
 
         public File(string inName, uint inLength)
         {
@@ -37,16 +39,19 @@ namespace RemoteFile
             address = uint.MaxValue;
         }
 
+
         public void open()
         {
             isOpen = true;
         }
+
 
         public void close()
         {
             isOpen = false;
         }
     }
+
 
     public interface FileMap
     {

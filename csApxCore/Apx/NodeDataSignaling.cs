@@ -23,18 +23,21 @@ namespace Apx
         }
     }
 
+
     public class ApxType
     {
         public int minVal;
         public int maxVal;
         public bool isStruct;
+        public int structLen;
         public string typeDef;
         public string typeName; // Not activly used except for debugging
-        public ApxType(string name, string type, bool isStructType= false)
+        public ApxType(string name, string type, bool isStructType= false, int structLength = 0)
         {
             typeName = name;
             typeDef = type;
             isStruct = isStructType;
+            structLen = structLength;
         }
     }
     
@@ -50,14 +53,18 @@ namespace Apx
             return Type;
         }
 
+
         public void addApxTypeToList(string typeName, string type, bool isArr, string interpretation = "")
         {
             ApxType atype = new ApxType(typeName, type, isArr);
             apxTypeList.Add(atype);
         }
+
         
-        public void addApxSignalToList(string sigName, string type, string array)
+        public void addApxSignalToList(string sigName, string type)
         {
+            // Redo Array/arr section...
+            string array = "";
             int arr;
             if (array.Length > 0)
             { arr = int.Parse(array); }
@@ -75,6 +82,7 @@ namespace Apx
                 }
             }
         }
+
 
         public string typeToReadable(char type, int array, byte[] data)
         {
@@ -122,6 +130,7 @@ namespace Apx
             }
             return res;
         }
+
 
         private uint typeToLen(char type, string array = "")
         { return typeToLen(type.ToString(), array); }

@@ -10,6 +10,7 @@ public static class NumHeader
 
     }
 
+
     public static decodeReturn decode(List<byte> data, int offset, int mode = 32)
     {
         decodeReturn ret = new decodeReturn();
@@ -50,6 +51,7 @@ public static class NumHeader
         return ret;
     }
 
+
     public static List<byte> encode(uint value, int mode = 32)
     {
         List<byte> data = new List<byte>();
@@ -78,6 +80,7 @@ public static class NumHeader
         return data;
     }
 
+
     public static byte[] pack32(uint inVal)
     {
         if (inVal < 128)
@@ -103,7 +106,7 @@ public static class NumHeader
             throw new System.ArgumentException("input value '" + inVal + "' out of range");
         }
     }
-    //return bytes([(0x80 | ( (value >> 24) & 0xFF)),(value >> 16) & 0xFF, (value >> 8) & 0xFF, (value & 0xFF) ])
+
 
     public static uint unpack32(byte[] inArr)
     {
@@ -132,7 +135,6 @@ public static class NumHeader
         else
         {
             throw new System.ArgumentException("input must be one or four bytes long!");
-
         }
     }
 }

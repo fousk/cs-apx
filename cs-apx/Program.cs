@@ -17,7 +17,6 @@ namespace cs_apx
 
             while (true)
             {
-                Console.WriteLine("tick from Main: " + Thread.CurrentThread.Name);
                 Thread.Sleep(1000);
             }
         }

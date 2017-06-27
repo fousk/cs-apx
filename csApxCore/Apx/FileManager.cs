@@ -14,11 +14,13 @@ namespace Apx
         protected static FileMap remoteFileMap = new FileMap();
         protected static List<Apx.File> requestedFiles = new List<Apx.File>();
         
+
         public FileManager() : base(localFileMap, localFileMap)
         {
 
         }
         
+
         public void attachNodeData(Apx.NodeData nodeData)
         {
             if (nodeData.inPortDataFile != null)
@@ -37,15 +39,18 @@ namespace Apx
             }
         }
 
+
         public void attachLocalFile(Apx.File file)
         {
             localFileMap.insert(file);
         }
 
+
         public void attachRemoteFile(Apx.File file)
         {
             remoteFileMap.insert(file);
         }
+
 
         public override void onConnected(TransmitHandler handler)
         {
@@ -60,13 +65,10 @@ namespace Apx
 
                 Msg msg = new Msg(RemoteFile.Constants.RMF_MSG_FILEINFO, (uint)0, (uint)0, (object)file);
                 msgQueue.Add(msg);
-                //throw new NotImplementedException("Fix Msg initialization (0, 0)");
-                
-                
             }
         }
 
-        // Handles received messages
+
         protected override void processMessage(Msg msg)
         {
             if (msg.msgType == RemoteFile.Constants.RMF_MSG_CONNECT)
@@ -103,22 +105,13 @@ namespace Apx
 
                 if (transmitHandler != null)
                 { transmitHandler.send(data); }
-
-                /*List<byte> payload = (List<byte>)msg.msgData3;
-                Console.WriteLine("processMessage, Data of length " + payload.Count);
-
-                List<byte> data = RemoteFileUtil.packHeader(msg.msgData1, false);
-                data.AddRange(payload);
-
-                if (transmitHandler != null)
-                { transmitHandler.send(data); }
-                 */
             }
             else
             {
                 throw new System.ArgumentException("Unknown msgType");
             }
         }
+
 
         protected override void _processCmd(List<byte> data)
         {
@@ -181,6 +174,7 @@ namespace Apx
                 throw new ArgumentException("too short command to proccess");
             }
         }
+
 
         protected override void _processFileWrite(uint address, bool more_bit, List<byte> data)
         {

@@ -66,12 +66,15 @@ public static class RemoteFileUtil
         return ret;
     }
 
+
     public struct headerReturn
     {
         public int bytes_parsed;
         public uint address;
         public bool more_bit;
     }
+
+
     public static headerReturn unpackHeader(byte[] data)
     {
         headerReturn ret = new headerReturn();
@@ -118,6 +121,7 @@ public static class RemoteFileUtil
         return ret;
     }
 
+
     public static List<byte> packFileOpen(uint address, string byteOrder = "<")
     {
         List<byte> blist = new List<byte>();
@@ -131,6 +135,7 @@ public static class RemoteFileUtil
 
         return blist;
     }
+
 
     public static uint unPackFileOpen(List<byte> data, string byteOrder = "<")
     {
@@ -155,6 +160,7 @@ public static class RemoteFileUtil
         return address;
     }
 
+
     public static List<byte> packFileClose(uint address, string byteOrder = "<")
     {
         List<byte> blist = new List<byte>();
@@ -168,6 +174,7 @@ public static class RemoteFileUtil
 
         return blist;
     }
+
 
     public static uint unPackFileClose(List<byte> data, string byteOrder = "<")
     {
@@ -192,6 +199,7 @@ public static class RemoteFileUtil
         return address;
     }
 
+
     public static List<byte> packFileInfo(File file, string byteOrder = "<")
     {
         if ((byteOrder != "<")) // Only little endian supportet at the moment
@@ -214,6 +222,7 @@ public static class RemoteFileUtil
             return blist;
         }
     }
+
 
     public static File unPackFileInfo(List<byte> data, string byteOrder = "<")
     {
@@ -244,6 +253,7 @@ public static class RemoteFileUtil
 
         return file;
     }
+
 
     public static byte oneByte(uint val)
     {

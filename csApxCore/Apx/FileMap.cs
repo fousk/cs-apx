@@ -17,17 +17,16 @@ namespace Apx
         public const uint USER_DATA_START = 0x20000000; //512MB, this must be a power of 2
         public const uint USER_DATA_END = 0x3FFFFC00; //Start of remote file cmd message area
         public const uint USER_DATA_BOUNDARY = 0x100000; //1MB, this must be a power of 2
-        //public const string definition = "APX/1.2\nN\"dummyNode\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\n\n";
-        //public const string definition = "APX/1.2\nN\"csApxClient\"\nP\"dummyProvidePort\"C\nR\"WheelBasedVehicleSpeed\"S:=65535\nR\"VehicleMode\"C:=255\n\n";
         public const string defaultDefinitionPath = "C:\\1_Provning\\APX\\cs-apx\\cs-apx\\bin\\Debug\\ApxDefinition.txt";
-        
     }
+
 
     public class FileMap : RemoteFile.FileMap
     {
         public List<File> fileList = new List<File>();
         protected File lastMatch;
         // _keys is not used in the c# version of Apx
+
 
         public bool insert(RemoteFile.File file)
         {
@@ -49,14 +48,14 @@ namespace Apx
             return res;
         }
         
+
         public bool remove(RemoteFile.File file)
         {
-            // Is this even needed anymore?
-            // Typecast RemoteFile.File to Apx.File
             Apx.File apxFile = (Apx.File)file;
             throw new System.NotImplementedException("remove not implemented");
         }
         
+
         public Apx.File findByAddress(uint address)
         {
             if ((lastMatch != null) && (address >= lastMatch.address) && (address < lastMatch.address + lastMatch.length))
@@ -73,6 +72,7 @@ namespace Apx
             }
             return null;
         }
+
 
         public bool assignFileAddressDefault(RemoteFile.File file)
         {
@@ -94,6 +94,7 @@ namespace Apx
             }
             return res;
         }
+
 
         public bool assignFileAddress(File file, uint startAddress, uint endAddress, uint addressBoundary)
         {
@@ -166,11 +167,13 @@ namespace Apx
             { return false; }
         }
 
+
         public void sortedAddFileToList(File file)
         {
             fileList.Add(file);
             fileList.Sort((a, b) => a.address.CompareTo(b.address));
         }
+
 
         public List<string> getNameList()
         {
@@ -182,6 +185,7 @@ namespace Apx
             return temp;
         }
 
+
         public List<uint> getAddressList()
         {
             List<uint> temp = new List<uint>();
@@ -191,6 +195,7 @@ namespace Apx
             }
             return temp;
         }
+
 
         public uint getNextArea(uint fileAddress, uint fileLength, uint boundary)
         {

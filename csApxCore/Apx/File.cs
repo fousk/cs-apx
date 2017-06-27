@@ -43,6 +43,7 @@ namespace Apx
             return list;
         }
 
+
         public int write(uint offset, List<byte> inData, bool moreBit = false)
         {
             int len = 0;
@@ -63,11 +64,10 @@ namespace Apx
                 {
                     fileEventHandler.onFileWrite(this, offset, inData.Count);
                 }
-
             }
-            //Console.WriteLine("Data after write: " + BitConverter.ToString(data));
             return len;
         }
+
 
         public void setFileEventHandler(FileEventHandler eventHandler)
         {

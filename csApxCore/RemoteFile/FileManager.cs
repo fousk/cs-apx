@@ -24,8 +24,6 @@ namespace RemoteFile
 
     public abstract class FileManager : ReceiveHandler
     {
-        //public Apx.FileMap localFileMap, remoteFileMap;
-        //protected List<File> requestedFiles = new List<File>();
         protected string byteOrder = "<"; // use '<' for little endian, '>' for big endian
         protected Guid InstanceID { get; private set; }    // Check that we use the right instance
         protected BlockingCollection<Msg> msgQueue = new BlockingCollection<Msg>();
@@ -39,9 +37,8 @@ namespace RemoteFile
         {
             this.InstanceID = Guid.NewGuid();
             waitHandle = new AutoResetEvent(false);
-            //localFileMap = setLocalFileMap;
-            //remoteFileMap = setRemoteFileMap;
         }
+
         
         public void start()
         {
@@ -50,6 +47,7 @@ namespace RemoteFile
             workerThread.Start();
             isWorkerThreadActive = true;
         }
+
 
         public void stop()
         {
@@ -61,6 +59,7 @@ namespace RemoteFile
             }
             
         }
+
 
         public void worker()
         {
@@ -79,12 +78,12 @@ namespace RemoteFile
             }
         }
 
+
         public override void onMsgReceived(List<byte> msg)
         {
             RemoteFileUtil.headerReturn header = RemoteFileUtil.unpackHeader(msg.ToArray());
             if (header.bytes_parsed > 0)
             {
-                //Console.WriteLine("got message with: " + msg.Count + " bytes");
                 if (header.address == Constants.RMF_CMD_START_ADDR)
                 {
                     _processCmd(msg.GetRange(header.bytes_parsed, msg.Count - header.bytes_parsed));
@@ -101,11 +100,11 @@ namespace RemoteFile
             // else do nothing
         }
 
+        
         protected abstract void _processCmd(List<byte> data);
-        //protected abstract void _processFileWrite(uint address, bool more_bit, List<byte> data);
         protected abstract void _processFileWrite(uint address, bool more_bit, List<byte> data);
-
         protected abstract void processMessage(Msg msg);
+
 
         public void Enqueue(Msg msg)
         {

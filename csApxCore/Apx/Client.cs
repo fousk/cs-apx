@@ -24,13 +24,11 @@ namespace Apx
         static Thread socketAdapterThread;
         static NodeData nodeData;
 
+
         public static void Main()
         {
             Thread.CurrentThread.Name = "MainThread";
-            Console.WriteLine("Starting a Client (" + Thread.CurrentThread.Name + ")");
 
-            //nodeData = new NodeData("dummyNode", 2, 1, Apx.Constants.definition);
-            //nodeData = new NodeData("dummyNode", 3, 1, Apx.Constants.definition);
             nodeData = new NodeData("startupPath");
 
             fileManager = new FileManager();
@@ -44,7 +42,6 @@ namespace Apx
                 while (true)
                 {
                     Thread.Sleep(1000);
-                    //Console.WriteLine("tick from Client: " + Thread.CurrentThread.Name);
                 }
             }
             catch (Exception e)
@@ -53,6 +50,7 @@ namespace Apx
             }
             
         }
+
 
         static public bool connectTcp(string address, int port)
         {

@@ -23,6 +23,7 @@ namespace RemoteFile
         { }
     }
 
+
     public class SocketAdapter : TransmitHandler
     {
         static ReceiveHandler receiveHandler;
@@ -32,8 +33,10 @@ namespace RemoteFile
         static TcpClient client = new TcpClient();
         static NetworkStream tcpStream; 
 
+
         public SocketAdapter()
         { }
+
 
         public void worker()
         {
@@ -73,6 +76,7 @@ namespace RemoteFile
             
         }
 
+
         public int _parseData(List<byte> data)
         {
             int iBegin = 0;
@@ -96,6 +100,7 @@ namespace RemoteFile
             }
             return iBegin;
         }
+
 
         public int _parseMessage(List<byte> data, int iBegin)
         {
@@ -136,6 +141,7 @@ namespace RemoteFile
             }
         }
 
+
         public bool connect(string address, int port)
         {
             if (address == "localhost")
@@ -161,15 +167,18 @@ namespace RemoteFile
             return true;
         }
 
+
         public void setRecieveHandler(ReceiveHandler handler)
         {
             receiveHandler = handler;
         }
 
+
         public void sendTransmitHandler()
         {
             receiveHandler.onConnected(this);
         }
+
 
         public override void send(List<byte> msg)
         {
@@ -177,7 +186,7 @@ namespace RemoteFile
             data.AddRange(msg);
             Console.WriteLine("sending: " + data.Count + " bytes");
             tcpStream.Write(data.ToArray(), 0, data.Count);
-            Console.WriteLine("_Data_" + Encoding.Default.GetString(data.ToArray()) + "_End_");
+            //Console.WriteLine("_Data_" + Encoding.Default.GetString(data.ToArray()) + "_End_");
         }
     }
 }

@@ -11,7 +11,6 @@ namespace Apx
 {
 
     // ToDO 
-    // Duplicate Nodename = bad times, re-name automagically
     // Ports not processed according to APX doc (set up these as read port as well?)
     // Structs not handeled
     // Code("R"-line) is in a mess, clean up!
@@ -46,7 +45,7 @@ namespace Apx
                 string line;
                 char lineType = ' ';
                 string sigName;
-                string type;
+                string sigType;
                 string enumType;
                 bool isArray = false;
                 while ((line = streamReader.ReadLine()) != null)
@@ -54,7 +53,7 @@ namespace Apx
                     if (line.Length > 0)
                     {
                         lineType = line[0];
-                        if (lineType == 'T')        // Type
+                        if (lineType == 'T')        // Signal type
                         {   // R"PS_CabTiltLockWarning"C(0,7):=7
                             // "T[0]:=7 -> "C(0,7):=7
                             sigName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
@@ -67,37 +66,44 @@ namespace Apx
                             }
                             else
                             { isArray = false; }
-                            type = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
+                            sigType = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
 
-                            if (type == "") // Short type
+                            if (sigType == "") // Short type
                             {
-                                type = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
+                                sigType = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
                             }
 
-                            addApxTypeToList(sigName, type, isArray);
+                            addApxTypeToList(sigName, sigType, isArray);
                         }
                         else if (lineType == 'R')        // Receive port
                         {
+                            sigType = "";
                             sigName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
-                            Console.WriteLine(sigName);
                             enumType = Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
                             if (enumType == "")
                             {
-                                // "simple" type, no enum
-                                type = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
+                                // "simple" type, no Type reference
+                                sigType = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
                             }
                             else
                             {
-                                // Indexed enum type (lookup in apxType)
-                                type = apxTypeList[int.Parse(enumType)].typeDef;
+                                sigType = apxTypeList[int.Parse(enumType)].typeDef;
                             }
-                            if (type != "")
+
+                            if (sigType != "")
                             {
-                                indataLen += typeToLen(type.Substring(0, 1), "");
-                                //if (indataLen > 0)
-                                //{
-                                    addApxSignalToList(sigName, type, "");
-                                //}
+                                if (apxTypeList[int.Parse(enumType)].isStruct)
+                                {
+                                    // loop 
+                                    
+                                    throw new NotImplementedException();
+                                }
+                                else
+                                {
+                                    indataLen += typeToLen(sigType.Substring(0, 1), "");
+                                }
+                                    
+                                addApxSignalToList(sigName, sigType);
                             }
                             else
                             {
@@ -106,9 +112,9 @@ namespace Apx
                         }
                         else if (lineType == 'P')   // Provide port
                         {
-                            type = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
+                            sigType = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
                             enumType = Regex.Match(line, "[(.*)]").Groups[1].ToString();
-                            outdataLen += typeToLen(type, "");
+                            outdataLen += typeToLen(sigType, "");
                         }
                         else if (lineType == 'N')   // Node Name
                         {
@@ -138,14 +144,11 @@ namespace Apx
 
         }
 
+
         public void onFileWrite(File file, uint offset, int dataLen)
         {
             Console.WriteLine("-- signal Update --");
-            /*Console.WriteLine("File name: " + file.name);
-            Console.WriteLine("NodeData: " + nodeName);
-            Console.WriteLine("offset: " + offset);
-            Console.WriteLine("data:" + BitConverter.ToString(data.ToArray()));
-            */
+
             int parsed = 0;
             ApxSignal temp;
             string print;
@@ -174,7 +177,6 @@ namespace Apx
         }
 
         
-
         public NodeData(string nodeName, uint indataLen, uint outdataLen, string definition)
         {
             if (indataLen > 0)
@@ -189,16 +191,19 @@ namespace Apx
             }
         }
 
+
         private void createInPortDataFile(string nodeName, uint indataLen)
         {
             inPortDataFile = new Apx.File(nodeName + ".in", indataLen);
             inPortDataFile.setFileEventHandler(this);
         }
 
+
         private void createOutPortDataFile(string nodeName, uint outDataLen)
         {
             outPortDataFile = new Apx.File(nodeName + ".out", outDataLen);
         }
+
 
         private void createDefinitionFile(string nodeName, string definition)
         {
