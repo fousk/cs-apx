@@ -145,7 +145,7 @@ namespace RemoteFile
         public bool connect(string address, int port)
         {
             if (address == "localhost")
-            { address = "192.168.137.123"; }
+            { address = "127.0.0.1"; }
             System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
             try
             {

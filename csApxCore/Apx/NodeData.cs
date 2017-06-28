@@ -26,92 +26,21 @@ namespace Apx
         uint indataLen = 0;
         uint outdataLen = 0;
         string definition = "";
+        string line;
+        char apxLineType = ' ';
+        string path;
+        string readContents = "";
 
-        public NodeData(string path = "default")
+        public NodeData(string inPath = "default")
         {
             nodeName = "csApxClient";
-
-            if (path == "default")
-            { path = Apx.Constants.defaultDefinitionPath; }
-            else if (path == "startupPath")
-            {
-                path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\ApxDefinition.txt";
-            }
-            string readContents = "";
+            path = setPathToApxFile(inPath);
             
             using (StreamReader streamReader = new StreamReader(path, Encoding.UTF8))
             {
-                string line;
-                char lineType = ' ';
-                string sigName;
-                string sigType;
-                string enumType;
-                bool isArray = false;
                 while ((line = streamReader.ReadLine()) != null)
                 {
-                    if (line.Length > 0)
-                    {
-                        lineType = line[0];
-                        if (lineType == 'T')        // Signal type
-                        {   // R"PS_CabTiltLockWarning"C(0,7):=7
-                            // "T[0]:=7 -> "C(0,7):=7
-                            sigName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
-                            // Should get something like "C(0,7)"
-                            string arrTest = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
-                            if (arrTest == "{")
-                            { 
-                                // Handle array types propperly later..
-                                isArray = true; 
-                            }
-                            else
-                            { isArray = false; }
-                            sigType = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
-
-                            if (sigType == "") // Short type
-                            {
-                                sigType = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
-                            }
-
-                            addApxTypeToList(sigName, sigType, isArray);
-                        }
-                        else if (lineType == 'R')        // Receive port
-                        {
-                            sigType = "";
-                            sigName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
-                            enumType = Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
-                            if (enumType == "")
-                            {
-                                // "simple" type, no Type reference
-                                sigType = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
-                            }
-                            else
-                            {
-                                sigType = apxTypeList[int.Parse(enumType)].typeDef;
-                            }
-
-                            if (sigType != "")
-                            {
-                                indataLen += typeToLen(sigType.Substring(0, 1), "");
-                                    
-                                addApxSignalToList(sigName, sigType);
-                            }
-                            else
-                            {
-                                Console.WriteLine("type is empty");
-                            }
-                        }
-                        else if (lineType == 'P')   // Provide port
-                        {
-                            sigType = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
-                            enumType = Regex.Match(line, "[(.*)]").Groups[1].ToString();
-                            outdataLen += typeToLen(sigType, "");
-                        }
-                        else if (lineType == 'N')   // Node Name
-                        {
-                            nodeName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
-                        }
-                    }
-                    readContents += line + "\n";
+                    processApxDefenitionLine();
                 }
             }
             readContents = readContents.Replace("\r", "\n");
@@ -132,6 +61,91 @@ namespace Apx
             else
             { throw new ArgumentException("Definition string must not be empty"); }
 
+        }
+
+        private void processApxDefenitionLine()
+        {
+            if (line.Length > 0)
+            {
+                apxLineType = line[0];
+                if (apxLineType == 'T')        // Signal type
+                    processTypeDefenitionLine();
+                else if (apxLineType == 'R')        // Receive port
+                    processReceiveportLine();
+                else if (apxLineType == 'P')   // Provide port
+                {
+                    string psigType = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
+                    outdataLen += typeToLen(psigType, "");
+                }
+                else if (apxLineType == 'N')   // Node Name
+                {
+                    // Replace NodeName in line to avoid duplicate names of clients!
+                    nodeName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
+                }
+            }
+            readContents += line + "\n";
+        }
+
+        private void processReceiveportLine()
+        {
+            
+            string sigName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
+            string sigType = getSignalTypeDefinition();
+
+            if (sigType != "")
+            {
+                indataLen += typeToLen(sigType.Substring(0, 1), "");
+                addApxSignalToList(sigName, sigType);
+            }
+            else
+                Console.WriteLine("type is empty");
+        }
+
+        private string getSignalTypeDefinition()
+        {
+            string enumType = Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
+            string st = "";
+            if (enumType == "")
+            {
+                // "simple" type, no Type reference
+                st = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
+            }
+            else
+            {
+                st = apxTypeList[int.Parse(enumType)].typeDef;
+            }
+            return st;
+        }
+
+        private void processTypeDefenitionLine()
+        {
+            string typeName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
+            string typeIdentifier = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
+            bool isStruct = isTypeWithStructData();
+            if (typeIdentifier == "") // Short type
+                typeIdentifier = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
+
+            addApxTypeToList(typeName, typeIdentifier, isStruct);
+        }
+
+        private bool isTypeWithStructData()
+        {
+            string arrTest = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
+            if (arrTest == "{")
+                return true;
+            else
+                return false; 
+        }
+
+        private static string setPathToApxFile(string path)
+        {
+            if (path == "default")
+            { path = Apx.Constants.defaultDefinitionPath; }
+            else if (path == "startupPath")
+            {
+                path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\ApxDefinition.txt";
+            }
+            return path;
         }
 
 

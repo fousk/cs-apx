@@ -54,9 +54,9 @@ namespace Apx
         }
 
 
-        public void addApxTypeToList(string typeName, string type, bool isArr, string interpretation = "")
+        public void addApxTypeToList(string typeName, string typeIdentifier, bool isStruct, string interpretation = "")
         {
-            ApxType atype = new ApxType(typeName, type, isArr);
+            ApxType atype = new ApxType(typeName, typeIdentifier, isStruct);
             apxTypeList.Add(atype);
         }
 
