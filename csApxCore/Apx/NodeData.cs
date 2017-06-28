@@ -20,17 +20,16 @@ namespace Apx
         public Apx.File inPortDataFile;
         public Apx.File outPortDataFile;
         public Apx.File definitionFile;
-        string nodeName;
         public List<ApxType> apxTypeList = new List<ApxType>();
         public List<ApxSignal> apxSignalList = new List<ApxSignal>();
-
+        string nodeName;
+        uint indataLen = 0;
+        uint outdataLen = 0;
+        string definition = "";
 
         public NodeData(string path = "default")
         {
             nodeName = "csApxClient";
-            uint indataLen = 0;
-            uint outdataLen = 0;
-            string definition = "";
 
             if (path == "default")
             { path = Apx.Constants.defaultDefinitionPath; }
@@ -92,16 +91,7 @@ namespace Apx
 
                             if (sigType != "")
                             {
-                                if (apxTypeList[int.Parse(enumType)].isStruct)
-                                {
-                                    // loop 
-                                    
-                                    throw new NotImplementedException();
-                                }
-                                else
-                                {
-                                    indataLen += typeToLen(sigType.Substring(0, 1), "");
-                                }
+                                indataLen += typeToLen(sigType.Substring(0, 1), "");
                                     
                                 addApxSignalToList(sigName, sigType);
                             }
