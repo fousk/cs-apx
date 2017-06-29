@@ -22,10 +22,9 @@ namespace Apx
         public Apx.File definitionFile;
         public List<ApxType> apxTypeList = new List<ApxType>();
         public List<ApxSignal> apxSignalList = new List<ApxSignal>();
-        string nodeName;
+        string nodeName = "CSApxClient";
         uint indataLen = 0;
         uint outdataLen = 0;
-        string definition = "";
         string line;
         char apxLineType = ' ';
         string path;
@@ -33,7 +32,6 @@ namespace Apx
 
         public NodeData(string inPath = "default")
         {
-            nodeName = "csApxClient";
             path = setPathToApxFile(inPath);
             
             using (StreamReader streamReader = new StreamReader(path, Encoding.UTF8))
@@ -42,25 +40,11 @@ namespace Apx
                 {
                     processApxDefenitionLine();
                 }
+                addDummyProvidePort();
             }
             readContents = readContents.Replace("\r", "\n");
-            definition = readContents;
 
-            if (nodeName.Length == 0)
-            { throw new ArgumentException("nodeName string must not be empty"); }
-            if (indataLen > 0)
-            { createInPortDataFile(nodeName, indataLen); }
-            else
-            { throw new ArgumentException("indataLen not allowed to be 0"); }
-            if (outdataLen > 0)
-            { createOutPortDataFile(nodeName, outdataLen); }
-            else
-            { throw new ArgumentException("outdataLen not allowed to be 0"); }
-            if (definition.Length > 0)
-            { createDefinitionFile(nodeName, definition); }
-            else
-            { throw new ArgumentException("Definition string must not be empty"); }
-
+            createApxFiles();
         }
 
         private void processApxDefenitionLine()
@@ -69,29 +53,39 @@ namespace Apx
             {
                 apxLineType = line[0];
                 if (apxLineType == 'T')        // Signal type
-                    processTypeDefenitionLine();
+                    addTypeDefenitionToList();
                 else if (apxLineType == 'R')        // Receive port
-                    processReceiveportLine();
-                else if (apxLineType == 'P')   // Provide port
-                {
-                    string psigType = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
-                    outdataLen += typeToLen(psigType, "");
-                }
+                    addReceiveportToList();
+                else if (apxLineType == 'P')        // Provide port
+                    addReceiveportToList();         // Listen to all provide ports as well
                 else if (apxLineType == 'N')   // Node Name
-                {
-                    // Replace NodeName in line to avoid duplicate names of clients!
-                    nodeName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
-                }
+                    replaceApxDefenitionNodeName();
             }
             readContents += line + "\n";
         }
 
-        private void processReceiveportLine()
+        private void addDummyProvidePort()
         {
-            
-            string sigName = Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
-            string sigType = getSignalTypeDefinition();
+            // There is a bug in ApxServer which requires atleast one Provideport to function, so we create a dummyport.
+            string dummyLine = "P\"dummyProvidePort\"C";
+            string psigType = Regex.Match(dummyLine, "\".*\"(.)").Groups[1].ToString();
+            outdataLen += typeToLen(psigType, "");
+        }
 
+        private void replaceApxDefenitionNodeName()
+        {
+            line = "N\"" + nodeName + "\"";
+        }
+
+        private void addReceiveportToList()
+        {
+            string sigName = getStringWithinParentheses();
+            string sigType = getSignalTypeDefinition();
+            parseAndAddApxSignalToList(sigName, sigType);
+        }
+
+        private void parseAndAddApxSignalToList(string sigName, string sigType)
+        {
             if (sigType != "")
             {
                 indataLen += typeToLen(sigType.Substring(0, 1), "");
@@ -101,31 +95,68 @@ namespace Apx
                 Console.WriteLine("type is empty");
         }
 
+        private string getStringWithinParentheses()
+        {
+            return Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
+        }
+
         private string getSignalTypeDefinition()
         {
-            string enumType = Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
-            string st = "";
-            if (enumType == "")
-            {
-                // "simple" type, no Type reference
-                st = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
-            }
-            else
-            {
-                st = apxTypeList[int.Parse(enumType)].typeDef;
-            }
+            string typeIdentifier = getnumericalInHardBrackets();
+            string st = getsignalTypefromTypeIdentifier(typeIdentifier);
             return st;
         }
 
-        private void processTypeDefenitionLine()
+        private string getsignalTypefromTypeIdentifier(string enumType)
         {
-            string typeName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
-            string typeIdentifier = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
-            bool isStruct = isTypeWithStructData();
-            if (typeIdentifier == "") // Short type
-                typeIdentifier = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
+            string st;
+            if (enumType == "")     // "simple" type, no Type reference
+                st = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
+            else
+                st = apxTypeList[int.Parse(enumType)].typeDef;
+            return st;
+        }
 
-            addApxTypeToList(typeName, typeIdentifier, isStruct);
+        private string getnumericalInHardBrackets()
+        {
+            string enumType = Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
+            return enumType;
+        }
+
+        private void addTypeDefenitionToList()
+        {
+            bool isStruct = isTypeWithStructData();
+            string typeName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
+            if (isStruct)
+            {
+                MatchCollection matches = Regex.Matches(line, "\"(.*?)\"");
+                //string tst = matches[0].Groups[1].ToString();
+                List<string> lst = new List<string>();
+                foreach (Match match in matches)
+                {
+                    string structName = match.Groups[1].ToString();
+                    string pattern = structName + "\"([^:\"$}]+)";
+                    MatchCollection m = Regex.Matches(line, pattern);
+                    if (m.Count > 0)
+                    {
+                        string type = m[0].Groups[1].ToString();
+                        if (type != "{")    // Ignore First match
+                            lst.Add(type);
+                    }
+                    else
+                        throw new ArgumentException("Following line not decoded: " + line );
+                }
+                addApxTypeToList(typeName, lst.ToString(), isStruct);
+            }
+            else
+            {
+                string typeIdentifier = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
+
+                if (typeIdentifier == "") // Short type
+                    typeIdentifier = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
+                addApxTypeToList(typeName, typeIdentifier, isStruct);
+            }
+
         }
 
         private bool isTypeWithStructData()
@@ -148,11 +179,54 @@ namespace Apx
             return path;
         }
 
+        private void createApxFiles()
+        {
+            if (nodeName.Length == 0)
+                throw new ArgumentException("nodeName string must not be empty");
+
+            createInPortDataFile(nodeName, indataLen);
+            createOutPortDataFile(nodeName, outdataLen);
+            createDefinitionFile(nodeName, readContents);
+        }
+
+        private void createInPortDataFile(string nodeName, uint indataLen)
+        {
+            if (indataLen > 0)
+            {
+                inPortDataFile = new Apx.File(nodeName + ".in", indataLen);
+                inPortDataFile.setFileEventHandler(this);
+            }
+            else
+                throw new ArgumentException("indataLen not allowed to be 0");
+        }
+
+
+        private void createOutPortDataFile(string nodeName, uint outDataLen)
+        {
+            if (outdataLen > 0)
+                outPortDataFile = new Apx.File(nodeName + ".out", outDataLen);
+            else
+                throw new ArgumentException("outdataLen not allowed to be 0");
+        }
+
+
+        private void createDefinitionFile(string nodeName, string definition)
+        {
+            if (readContents.Length > 0)
+            {
+                List<Byte> definitionBytes = new List<byte>();
+                definitionBytes.AddRange(ASCIIEncoding.ASCII.GetBytes(definition));
+                definitionFile = new Apx.File(nodeName + ".apx", (uint)definitionBytes.Count);
+                definitionFile.write(0, definitionBytes);
+                Console.WriteLine("definitionFile length: " + definitionFile.length);
+                definitionFile.setFileEventHandler(this);
+            }
+            else
+                throw new ArgumentException("Definition string must not be empty");
+        }
 
         public void onFileWrite(File file, uint offset, int dataLen)
         {
-            Console.WriteLine("-- signal Update --");
-
             int parsed = 0;
             ApxSignal temp;
             string print;
@@ -178,45 +252,6 @@ namespace Apx
             }
             else
             { throw new ArgumentException("File write outside of memory"); }
-        }
-
-        
-        public NodeData(string nodeName, uint indataLen, uint outdataLen, string definition)
-        {
-            if (indataLen > 0)
-            { createInPortDataFile(nodeName, indataLen); }
-            if (outdataLen > 0)
-            { createOutPortDataFile(nodeName, outdataLen); }
-            if (definition.Length > 0)
-            { createDefinitionFile(nodeName, definition); }
-            else
-            {
-                throw new ArgumentException("Definition string must not be empty");
-            }
-        }
-
-
-        private void createInPortDataFile(string nodeName, uint indataLen)
-        {
-            inPortDataFile = new Apx.File(nodeName + ".in", indataLen);
-            inPortDataFile.setFileEventHandler(this);
-        }
-
-
-        private void createOutPortDataFile(string nodeName, uint outDataLen)
-        {
-            outPortDataFile = new Apx.File(nodeName + ".out", outDataLen);
-        }
-
-
-        private void createDefinitionFile(string nodeName, string definition)
-        {
-            List<Byte> definitionBytes = new List<byte>();
-            definitionBytes.AddRange(ASCIIEncoding.ASCII.GetBytes(definition));
-            definitionFile = new Apx.File(nodeName + ".apx", (uint)definitionBytes.Count);
-            definitionFile.write(0, definitionBytes);
-            Console.WriteLine("definitionFile length: " + definitionFile.length);
-            definitionFile.setFileEventHandler(this);
         }
 
     }
