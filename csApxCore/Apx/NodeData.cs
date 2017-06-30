@@ -57,7 +57,12 @@ namespace Apx
                 else if (apxLineType == 'R')        // Receive port
                     addReceiveportToList();
                 else if (apxLineType == 'P')        // Provide port
-                    addReceiveportToList();         // Listen to all provide ports as well
+                {
+                    // Hack to listen to both Receive and Provide ports fom a given APX file.
+                    line = 'R' + line.Substring(1);
+                    addReceiveportToList();         
+                }
+                    
                 else if (apxLineType == 'N')   // Node Name
                     replaceApxDefenitionNodeName();
             }
@@ -79,48 +84,73 @@ namespace Apx
 
         private void addReceiveportToList()
         {
-            string sigName = getStringWithinParentheses();
-            string sigType = getSignalTypeDefinition();
-            parseAndAddApxSignalToList(sigName, sigType);
-        }
+            string sigName = getStringWithinQuotes();
+            string signalType = getSignalType();
+            string typeIdentifier = getnumericalInHardBrackets();
+            bool isArray = false;
+            ApxType aT;
+            int index = int.MaxValue;
+            if (typeIdentifier != "")
+                index = int.Parse(typeIdentifier);
 
-        private void parseAndAddApxSignalToList(string sigName, string sigType)
-        {
-            if (sigType != "")
+            if (signalType == "T")
             {
-                indataLen += typeToLen(sigType.Substring(0, 1), "");
-                addApxSignalToList(sigName, sigType);
+                if (apxTypeList.Count > index)
+                {
+                    aT = apxTypeList[index];
+                    aT.sigName = sigName;
+                }
+                else
+                    throw new ArgumentException("not able to parse line to ApxType");
+            }
+            else if (signalType != "")
+            {
+                List<string> names = new List<string> {""};
+                List<string> defenitions;
+                if (index == int.MaxValue)
+                    defenitions = new List<string> {signalType};
+                else
+                {
+                    isArray = true;
+                    defenitions = new List<string>();
+                    for (int i=0; i < index; i++)
+                        defenitions.Add(signalType);
+                }
+
+                aT = new ApxType(sigName, signalType, names, defenitions, isArray);
             }
             else
-                Console.WriteLine("type is empty");
+                throw new ArgumentException("not able to parse line to ApxType");
+
+            if (aT != null)
+                addApxTypedSignalToList(aT);
+            else
+                throw new ArgumentException("not able to parse line to ApxType");
         }
 
-        private string getStringWithinParentheses()
+        private string getSignalType()
+        {
+            return Regex.Match(line, "\".*\"(.)").Groups[1].ToString();;
+        }
+
+        private string getStringWithinQuotes()
         {
             return Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
         }
-
-        private string getSignalTypeDefinition()
-        {
-            string typeIdentifier = getnumericalInHardBrackets();
-            string st = getsignalTypefromTypeIdentifier(typeIdentifier);
-            return st;
-        }
-
+        
         private string getsignalTypefromTypeIdentifier(string enumType)
         {
             string st;
             if (enumType == "")     // "simple" type, no Type reference
                 st = Regex.Match(line, "\".*\"(.)").Groups[1].ToString();
             else
-                st = apxTypeList[int.Parse(enumType)].typeDef;
+                st = apxTypeList[int.Parse(enumType)].Defenitions[0];
             return st;
         }
 
         private string getnumericalInHardBrackets()
         {
-            string enumType = Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
-            return enumType;
+            return Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
         }
 
         private void addTypeDefenitionToList()
@@ -128,35 +158,45 @@ namespace Apx
             bool isStruct = isTypeWithStructData();
             string typeName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
             if (isStruct)
-            {
-                MatchCollection matches = Regex.Matches(line, "\"(.*?)\"");
-                //string tst = matches[0].Groups[1].ToString();
-                List<string> lst = new List<string>();
-                foreach (Match match in matches)
-                {
-                    string structName = match.Groups[1].ToString();
-                    string pattern = structName + "\"([^:\"$}]+)";
-                    MatchCollection m = Regex.Matches(line, pattern);
-                    if (m.Count > 0)
-                    {
-                        string type = m[0].Groups[1].ToString();
-                        if (type != "{")    // Ignore First match
-                            lst.Add(type);
-                    }
-                    else
-                        throw new ArgumentException("Following line not decoded: " + line );
-                }
-                addApxTypeToList(typeName, lst.ToString(), isStruct);
-            }
+                addApxStructTypeToList(isStruct, typeName);
             else
+                addApxSingleTypeToList(isStruct, typeName);
+        }
+
+        private void addApxSingleTypeToList(bool isStruct, string typeName)
+        {
+            string typeIdentifier = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
+
+            if (typeIdentifier == "") // Short type
+                typeIdentifier = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
+            List<string> tmp = new List<string> { typeIdentifier }; // new List<string>();
+            addApxTypeToList("", typeName, new List<string>(), tmp, isStruct);
+        }
+
+        private void addApxStructTypeToList(bool isStruct, string typeName)
+        {
+            List<string> types = new List<string>();
+            List<string> names = new List<string>();
+            MatchCollection structNames = Regex.Matches(line, "\"(.*?)\"");
+            foreach (Match nameMatch in structNames)
             {
-                string typeIdentifier = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
+                string structName = nameMatch.Groups[1].ToString();
+                string pattern = structName + "\"([^:\"$}]+)";
+                MatchCollection typeMatches = Regex.Matches(line, pattern);
+                if (typeMatches.Count > 0)
+                {
+                    string structType = typeMatches[0].Groups[1].ToString();
 
-                if (typeIdentifier == "") // Short type
-                    typeIdentifier = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
-                addApxTypeToList(typeName, typeIdentifier, isStruct);
+                    if (structType != "{")    // Ignore First match
+                    {
+                        names.Add(structName);
+                        types.Add(structType);
+                    }
+                }
+                else
+                    throw new ArgumentException("Following line not decoded: " + line);
             }
-
+            addApxTypeToList("", typeName, names, types, isStruct);
         }
 
         private bool isTypeWithStructData()
@@ -174,7 +214,7 @@ namespace Apx
             { path = Apx.Constants.defaultDefinitionPath; }
             else if (path == "startupPath")
             {
-                path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\ApxDefinition.txt";
+                path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\ApxDefinition.apx";
             }
             return path;
         }
