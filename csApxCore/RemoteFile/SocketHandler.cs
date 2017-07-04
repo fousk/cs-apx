@@ -60,7 +60,7 @@ namespace RemoteFile
                             { break; }
                             unprocessed.AddRange(readBuffer.Take(bytesRead));
                             bytesParsed = _parseData(unprocessed);
-                            // Console.WriteLine("- bytesParsed" + bytesParsed);
+                            //Console.WriteLine("- bytesParsed" + bytesParsed);
                             if (bytesParsed > 0)
                             {
                                 unprocessed.RemoveRange(0, bytesParsed);

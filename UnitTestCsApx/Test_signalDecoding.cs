@@ -18,7 +18,7 @@ namespace UnitTestCsApx
             NodeData nd = new NodeData();
             string txt;
             txt = nd.typeToReadable('a', 2, new byte[] { 0x41, 0x42 });
-            Assert.AreEqual("AB", txt);
+            Assert.AreEqual("\"AB\"", txt);
             // 8-bit
             txt = nd.typeToReadable('c', 1, new byte[] { 0x10 });
             Assert.AreEqual("16", txt);
@@ -53,7 +53,6 @@ namespace UnitTestCsApx
             Assert.AreEqual("269554195", txt);
             txt = nd.typeToReadable('U', 1, new byte[] { 0x79, 0xF5, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
             Assert.AreEqual("18446744073709548921", txt);
-
         }
     }
 }

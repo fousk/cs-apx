@@ -187,9 +187,7 @@ namespace Apx
                     remoteFile.write((uint)offset, data, more_bit);
                 }
                 else
-                {
                     throw new ArgumentException("_processFileWrite couldn't write (outside of memory)");
-                }
             }
             else
             {

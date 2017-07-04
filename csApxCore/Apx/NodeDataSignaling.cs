@@ -28,19 +28,19 @@ namespace Apx
     {
         public int minVal;
         public int maxVal;
-        public bool isStruct;
+        public bool isArray;
         public string sigName;
         public string typeName; // Not activly used except for debugging
         public List<string> structNames;
         public List<string> Defenitions;
 
-        public ApxType(string sigName, string typeName, List<string> structNames, List<string> Defenitions, bool isStructType = false)
+        public ApxType(string sigName, string typeName, List<string> structNames, List<string> Defenitions, bool isArrayType = false)
         {
             this.sigName = sigName;
             this.typeName = typeName;
             this.structNames = structNames;
             this.Defenitions = Defenitions;
-            this.isStruct = isStructType;
+            this.isArray = isArrayType;
         }
     }
     
@@ -48,23 +48,29 @@ namespace Apx
     public partial class NodeData : Apx.FileEventHandler
     {
 
-        public void addApxTypeToList(string sigName, string typeName, List<string> structNames, List<string> typeIdentifiers, bool isStruct, string interpretation = "")
+        public void addApxTypeToList(string sigName, string typeName, List<string> structNames, List<string> typeIdentifiers, bool isArray, string interpretation = "")
         {
-            ApxType atype = new ApxType(sigName, typeName, structNames, typeIdentifiers, isStruct);
+            ApxType atype = new ApxType(sigName, typeName, structNames, typeIdentifiers, isArray);
             apxTypeList.Add(atype);
         }
 
         //public void addApxSignalToList(string sigName, string type)
-        public void addApxTypedSignalToList(ApxType at)
+        public void addApxTypedSignalToList(ApxType aT)
         {
             uint offset = (uint)apxSignalList.Count;
-            for (int i = 0; i < at.Defenitions.Count; i++)
+            int arraySize = 0;
+            for (int i = 0; i < aT.Defenitions.Count; i++)
             {
-                string type = at.Defenitions[i];
-                string sigName = at.sigName + ":" + at.typeName;
-                if (at.structNames.Count > i)
-                    sigName += ":" + at.structNames[i];
-                uint typeLen = typeToLen(type);
+                string type = aT.Defenitions[i];
+                string sigName = aT.sigName + ":" + aT.typeName;
+                if (aT.structNames.Count > i)
+                    sigName += ":" + aT.structNames[i];
+
+                if (aT.isArray)
+                    arraySize = aT.Defenitions.Count;
+
+                uint typeLen = typeToLen(type, arraySize);
+
                 indataLen += typeLen;
                 for (int j = 0; j < typeLen; j++)
                 {
@@ -87,7 +93,7 @@ namespace Apx
             switch (type)
             {
                 case 'a':
-                    res = System.Text.Encoding.ASCII.GetString(data);
+                    res = "\"" + System.Text.Encoding.ASCII.GetString(data) + "\"";
                     break;
                 case 'c':
                     res = ((int)(sbyte)data[0]).ToString();
@@ -125,9 +131,9 @@ namespace Apx
         }
 
 
-        private uint typeToLen(char type, string array = "")
-        { return typeToLen(type.ToString(), array); }
-        private uint typeToLen(string type, string array = "")
+        private uint typeToLen(char type, int arraySize = 0)
+        { return typeToLen(type.ToString(), arraySize); }
+        private uint typeToLen(string type, int arraySize = 0)
         {
             int len = 0;
             string t = type.Substring(0, 1); // C(0,1) -> C
@@ -163,11 +169,9 @@ namespace Apx
                 default:
                     throw new ArgumentException("unhandled type");
             }
-            if (array.Length > 0)
+            if (arraySize > 0)
             {
-                int val = int.Parse(array);
-                if (val > 0)
-                { len = val * len; }
+                len = arraySize * len;
             }
             if (len <= 0)
             {

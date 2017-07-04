@@ -60,13 +60,15 @@ namespace Apx
                 {
                     // Hack to listen to both Receive and Provide ports fom a given APX file.
                     line = 'R' + line.Substring(1);
-                    addReceiveportToList();         
+                    addReceiveportToList();
                 }
-                    
                 else if (apxLineType == 'N')   // Node Name
                     replaceApxDefenitionNodeName();
+                else if (apxLineType == '#')             // Commented out
+                    Console.WriteLine("skipping row: " + line);
             }
-            readContents += line + "\n";
+            if (apxLineType != '#' || line.Length == 0)
+                readContents += line + "\n";
         }
 
         private void addDummyProvidePort()
@@ -74,7 +76,7 @@ namespace Apx
             // There is a bug in ApxServer which requires atleast one Provideport to function, so we create a dummyport.
             string dummyLine = "P\"dummyProvidePort\"C";
             string psigType = Regex.Match(dummyLine, "\".*\"(.)").Groups[1].ToString();
-            outdataLen += typeToLen(psigType, "");
+            outdataLen += typeToLen(psigType);
         }
 
         private void replaceApxDefenitionNodeName()
@@ -130,7 +132,7 @@ namespace Apx
 
         private string getSignalType()
         {
-            return Regex.Match(line, "\".*\"(.)").Groups[1].ToString();;
+            return Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();;
         }
 
         private string getStringWithinQuotes()
@@ -158,22 +160,37 @@ namespace Apx
             bool isStruct = isTypeWithStructData();
             string typeName = Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
             if (isStruct)
-                addApxStructTypeToList(isStruct, typeName);
+                addApxStructTypeToList(typeName);
             else
-                addApxSingleTypeToList(isStruct, typeName);
+                addApxSingleTypeToList(typeName);
         }
 
-        private void addApxSingleTypeToList(bool isStruct, string typeName)
+        private void addApxSingleTypeToList(string typeName)
         {
             string typeIdentifier = Regex.Match(line, "\".*?\"(.+?\\))").Groups[1].ToString();
+            string arrayString = getnumericalInHardBrackets();
+            List<string> tmp = new List<string>();
+            int arraySize = int.MaxValue;
+            bool isArray = false;
+
+            if (arrayString != "")
+                arraySize = int.Parse(arrayString);
 
             if (typeIdentifier == "") // Short type
                 typeIdentifier = Regex.Match(line, "\".*?\"(.)").Groups[1].ToString();
-            List<string> tmp = new List<string> { typeIdentifier }; // new List<string>();
-            addApxTypeToList("", typeName, new List<string>(), tmp, isStruct);
+            if (arraySize == int.MaxValue)
+                tmp.Add(typeIdentifier); // new List<string>();
+            else
+            {
+                isArray = true;
+                for (int i = 0; i < arraySize; i++)
+                    tmp.Add(typeIdentifier);
+            }
+
+            addApxTypeToList("", typeName, new List<string>(), tmp, isArray);
         }
 
-        private void addApxStructTypeToList(bool isStruct, string typeName)
+        private void addApxStructTypeToList(string typeName)
         {
             List<string> types = new List<string>();
             List<string> names = new List<string>();
@@ -196,7 +213,7 @@ namespace Apx
                 else
                     throw new ArgumentException("Following line not decoded: " + line);
             }
-            addApxTypeToList("", typeName, names, types, isStruct);
+            addApxTypeToList("", typeName, names, types, false);
         }
 
         private bool isTypeWithStructData()
@@ -268,30 +285,30 @@ namespace Apx
         public void onFileWrite(File file, uint offset, int dataLen)
         {
             int parsed = 0;
-            ApxSignal temp;
+            ApxSignal aS;
             string print;
 
             if (file.length >= (offset + (uint)dataLen))
             {
                 while (parsed < dataLen)
                 {
-                    temp = apxSignalList[(int)offset + parsed];
+                    aS = apxSignalList[(int)offset + parsed];
 
                     print = "";
-                    print += temp.name + " ";
-                    print += typeToReadable(temp.type, 1, file.read((int)offset + parsed, (int)temp.len).ToArray());
+                    print += aS.name + " ";
+                    print += typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray());
                     Console.WriteLine(print);
 
-                    if (temp.len > 0)
+                    if (aS.len > 0)
                     {
-                        parsed += (int)temp.len;
+                        parsed += (int)aS.len;
                     }
                     else // APX file is corrupt
                     { break; }
                 }
             }
             else
-            { throw new ArgumentException("File write outside of memory"); }
+                throw new ArgumentException("File write outside of memory");
         }
 
     }
