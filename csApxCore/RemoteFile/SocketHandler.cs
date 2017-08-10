@@ -40,7 +40,6 @@ namespace RemoteFile
 
         public void worker()
         {
-            Console.WriteLine("SocketAdapter worker thread started");
             List<byte> unprocessed = new List<byte>();
             byte[] buffer = new byte[2048]; // read in chunks of 2KB
             int bytesRead = 0;
@@ -67,7 +66,7 @@ namespace RemoteFile
                             }
                             else if (bytesParsed < 0)
                             { throw new ArgumentException("TcpSocketAdapter._parseData error "  + bytesParsed); }
-}
+                        }
                     }
                     catch (Exception e)
                     { Console.WriteLine(e.ToString()); }
@@ -142,13 +141,34 @@ namespace RemoteFile
         }
 
 
-        public bool connect(string address, int port)
+        public bool connect(string address, int port, int retries = 1)
         {
             if (address == "localhost")
             { address = "127.0.0.1"; }
             System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
+            bool connected = false;
+            int numberOfRetries = 0;
+            int maxNumberOfRetries = retries;     // Set 0 for infinite retries
             try
             {
+                Console.WriteLine("Connecting to target");
+                /*while (!connected)
+                {
+                    try
+                    {
+                        client.Connect(ipaddress, port);
+                        connected = true;
+                    }
+                    catch (SocketException)
+                    {
+                        Console.WriteLine("Connection failed, retrying...");
+                        numberOfRetries++;
+                        if ((numberOfRetries >= maxNumberOfRetries) && (maxNumberOfRetries != 0))
+                            break;
+                    }
+                }
+                Console.WriteLine("Connected to target");
+                */
                 client.Connect(ipaddress, port);
                 tcpStream = client.GetStream();
                 isConnected = true;
@@ -160,9 +180,7 @@ namespace RemoteFile
                 return false;
             }
 
-            List<byte> greeting = ASCIIEncoding.ASCII.GetBytes("RMFP/1.0\nNumHeader-Format:32\n\n").ToList();
-            //
-            //msg.AddRange(greeting);
+            List<byte> greeting = ASCIIEncoding.ASCII.GetBytes(Apx.Constants.defaultGreeting).ToList();
             send(greeting);
             return true;
         }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.RegularExpressions;
 using Apx;
+using System.Collections.Concurrent;
 
 namespace Apx
 {
@@ -30,6 +31,8 @@ namespace Apx
         string path;
         string readContents = "";
 
+        ConcurrentQueue<ExternalMsg> externalQueue;
+
         public NodeData(string inPath = "default")
         {
             path = setPathToApxFile(inPath);
@@ -45,6 +48,11 @@ namespace Apx
             readContents = readContents.Replace("\r", "\n");
 
             createApxFiles();
+        }
+
+        public void setExternalQueue(ConcurrentQueue<ExternalMsg> setExternalQueue)
+        {
+            externalQueue = setExternalQueue;
         }
 
         private void processApxDefenitionLine()
@@ -293,11 +301,16 @@ namespace Apx
                 while (parsed < dataLen)
                 {
                     aS = apxSignalList[(int)offset + parsed];
-
+                    
                     print = "";
                     print += aS.name + " ";
                     print += typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray());
                     Console.WriteLine(print);
+                    
+                    if (externalQueue != null)
+                    {
+                        externalQueue.Enqueue(new ExternalMsg(aS.name, typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray())));
+                    }
 
                     if (aS.len > 0)
                     {

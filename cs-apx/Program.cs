@@ -12,8 +12,8 @@ namespace cs_apx
     {
         static void Main(string[] args)
         {
-            //Client client = new Client();
-            Client.Main();
+            Client client = new Client();
+            client.Main("192.168.137.123", 5000);
 
             while (true)
             {

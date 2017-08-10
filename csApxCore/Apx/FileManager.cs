@@ -8,7 +8,7 @@ using RemoteFile;
 
 namespace Apx
 {
-    class FileManager : RemoteFile.FileManager
+    public class FileManager : RemoteFile.FileManager
     {
         protected static FileMap localFileMap = new FileMap();
         protected static FileMap remoteFileMap = new FileMap();

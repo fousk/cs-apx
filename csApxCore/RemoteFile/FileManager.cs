@@ -64,8 +64,6 @@ namespace RemoteFile
         public void worker()
         {
             Msg msg;
-
-            Console.WriteLine("Remotefile workerThread started" );
             while (true)
             {
                 msg = msgQueue.Take();
