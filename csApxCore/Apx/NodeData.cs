@@ -302,14 +302,16 @@ namespace Apx
                 {
                     aS = apxSignalList[(int)offset + parsed];
                     
-                    print = "";
-                    print += aS.name + " ";
-                    print += typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray());
-                    Console.WriteLine(print);
-                    
                     if (externalQueue != null)
                     {
                         externalQueue.Enqueue(new ExternalMsg(aS.name, typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray())));
+                    }
+                    else
+                    {
+                        print = "";
+                        print += aS.name + " ";
+                        print += typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray());
+                        Console.WriteLine(print);
                     }
 
                     if (aS.len > 0)

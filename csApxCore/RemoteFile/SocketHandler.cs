@@ -30,7 +30,7 @@ namespace RemoteFile
         static bool isAcknowledgeSeen = false;
         static bool isConnected = false;
 
-        static TcpClient client = new TcpClient();
+        static TcpClient client;
         static NetworkStream tcpStream; 
 
 
@@ -143,11 +143,12 @@ namespace RemoteFile
 
         public bool connect(string address, int port, int retries = 1)
         {
+            client = new TcpClient();
             if (address == "localhost")
             { address = "127.0.0.1"; }
             System.Net.IPAddress ipaddress = System.Net.IPAddress.Parse(address);  //127.0.0.1 as an example
-            bool connected = false;
-            int numberOfRetries = 0;
+            //bool connected = false;
+            //int numberOfRetries = 0;
             int maxNumberOfRetries = retries;     // Set 0 for infinite retries
             try
             {
@@ -155,7 +156,7 @@ namespace RemoteFile
                 /*while (!connected)
                 {
                     try
-                    {
+                    { 
                         client.Connect(ipaddress, port);
                         connected = true;
                     }
@@ -166,10 +167,9 @@ namespace RemoteFile
                         if ((numberOfRetries >= maxNumberOfRetries) && (maxNumberOfRetries != 0))
                             break;
                     }
-                }
-                Console.WriteLine("Connected to target");
-                */
+                }*/
                 client.Connect(ipaddress, port);
+                Console.WriteLine("Connected to target");
                 tcpStream = client.GetStream();
                 isConnected = true;
                 Console.WriteLine("Connected to: " + address + ", port: " + port.ToString());
@@ -177,6 +177,8 @@ namespace RemoteFile
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
+                tcpStream.Close();
+                client.Close();
                 return false;
             }
 

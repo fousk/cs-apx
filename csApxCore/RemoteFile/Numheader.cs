@@ -7,9 +7,7 @@ public static class NumHeader
     {
         public int bytesParsed;
         public uint value;
-
     }
-
 
     public static decodeReturn decode(List<byte> data, int offset, int mode = 32)
     {

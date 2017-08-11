@@ -10,14 +10,16 @@ namespace Apx
 {
     public class FileManager : RemoteFile.FileManager
     {
-        protected static FileMap localFileMap = new FileMap();
-        protected static FileMap remoteFileMap = new FileMap();
-        protected static List<Apx.File> requestedFiles = new List<Apx.File>();
+        protected static FileMap localFileMap;
+        protected static FileMap remoteFileMap;
+        protected static List<Apx.File> requestedFiles;
         
 
         public FileManager() : base(localFileMap, localFileMap)
         {
-
+            localFileMap = new FileMap();
+            remoteFileMap = new FileMap();
+            requestedFiles = new List<Apx.File>();
         }
         
 

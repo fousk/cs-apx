@@ -44,6 +44,7 @@ namespace RemoteFile
         {
             workerThread = new Thread(new ThreadStart(worker));
             workerThread.Name = "Filemanager workerThread";
+            workerThread.IsBackground = true;
             workerThread.Start();
             isWorkerThreadActive = true;
         }
