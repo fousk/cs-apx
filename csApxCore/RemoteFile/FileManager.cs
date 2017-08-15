@@ -20,6 +20,11 @@ namespace RemoteFile
         {
             
         }
+
+        public virtual void stop()
+        {
+
+        }
     }
 
     public abstract class FileManager : ReceiveHandler
@@ -54,6 +59,7 @@ namespace RemoteFile
         {
             if (isWorkerThreadActive)
             {
+                Console.WriteLine("stopping Filemanager workerThread");
                 msgQueue.Add(null);
                 workerThread.Join();
                 isWorkerThreadActive = false;

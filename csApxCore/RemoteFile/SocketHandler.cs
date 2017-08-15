@@ -27,15 +27,18 @@ namespace RemoteFile
     public class SocketAdapter : TransmitHandler
     {
         static ReceiveHandler receiveHandler;
-        static bool isAcknowledgeSeen = false;
-        static bool isConnected = false;
+        static bool isAcknowledgeSeen;
+        static bool isConnected;
 
         static TcpClient client;
         static NetworkStream tcpStream; 
 
 
         public SocketAdapter()
-        { }
+        {
+            isAcknowledgeSeen = false;
+            isConnected = false;
+        }
 
 
         public void worker()
@@ -153,21 +156,7 @@ namespace RemoteFile
             try
             {
                 Console.WriteLine("Connecting to target");
-                /*while (!connected)
-                {
-                    try
-                    { 
-                        client.Connect(ipaddress, port);
-                        connected = true;
-                    }
-                    catch (SocketException)
-                    {
-                        Console.WriteLine("Connection failed, retrying...");
-                        numberOfRetries++;
-                        if ((numberOfRetries >= maxNumberOfRetries) && (maxNumberOfRetries != 0))
-                            break;
-                    }
-                }*/
+
                 client.Connect(ipaddress, port);
                 Console.WriteLine("Connected to target");
                 tcpStream = client.GetStream();
@@ -176,7 +165,8 @@ namespace RemoteFile
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine("Connection failed, closing socket");
+                //Console.WriteLine(e.ToString());
                 tcpStream.Close();
                 client.Close();
                 return false;
@@ -187,6 +177,14 @@ namespace RemoteFile
             return true;
         }
 
+        public void disconnect()
+        {
+            isAcknowledgeSeen = false;
+            isConnected = false;
+            tcpStream.Close();
+            client.Close();
+            receiveHandler.stop();
+        }
 
         public void setRecieveHandler(ReceiveHandler handler)
         {

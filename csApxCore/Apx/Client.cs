@@ -10,7 +10,7 @@ namespace Apx
 {
     public class Client
     {
-        static SocketAdapter socketAdapter = new SocketAdapter();
+        static SocketAdapter socketAdapter;
         static Thread socketAdapterThread;
         static Apx.FileManager fileManager;
         static NodeData nodeData;
@@ -20,6 +20,7 @@ namespace Apx
         public void Main(string ipAddress = "127.0.0.1", int port = 5000)
         { 
             Thread.CurrentThread.Name = "MainThread";
+            socketAdapter= new SocketAdapter();
 
             nodeData = new NodeData("startupPath");
             if (externalMsgs != null)
@@ -76,8 +77,11 @@ namespace Apx
         public void close()
         {
             nodeData = null;
-            fileManager.stop();
-            fileManager = null;
+            if (fileManager != null)
+            {
+                fileManager.stop();
+                fileManager = null;
+            }
         }
     }
 }

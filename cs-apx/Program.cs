@@ -19,10 +19,6 @@ namespace cs_apx
         static void Main(string[] args)
         {
             int chunk = 0;
-            /*Client client = new Client();
-
-            client.Main("192.168.137.123", 5000);
-            */
             startClient();
 
             ExternalMsg msg;
@@ -39,12 +35,17 @@ namespace cs_apx
                 }
                 if (apxCoreThread.ThreadState == ThreadState.Stopped)
                 {
-                    apxClient.close();
+                    stopClient();
                     startClient();
                 }
                     
                 Console.WriteLine(apxCoreThread.ThreadState.ToString());
 
+                /*if (isConnected)
+                {
+                    Thread.Sleep(1000);
+                    stopClient();
+                }*/
             }
         }
 
@@ -75,10 +76,18 @@ namespace cs_apx
         {
             apxClient = new Client();
             apxClient.setQueue(msgs);
+            //apxCoreThread = new Thread(() => apxClient.Main("localhost", 5000));
             apxCoreThread = new Thread(() => apxClient.Main("192.168.137.123", 5000));
             apxCoreThread.IsBackground = true;
             apxCoreThread.Start();
         }
 
+        static void stopClient()
+        {
+            Console.WriteLine("stopping APX client");
+            apxClient.close();
+            apxCoreThread.Interrupt();
+            apxCoreThread.Join();
+        }
     }
 }
