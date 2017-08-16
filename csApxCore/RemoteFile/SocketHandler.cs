@@ -179,9 +179,11 @@ namespace RemoteFile
 
         public void disconnect()
         {
+            Console.WriteLine("Closing connection");
             isAcknowledgeSeen = false;
             isConnected = false;
             tcpStream.Close();
+            tcpStream.Dispose();
             client.Close();
             receiveHandler.stop();
         }

@@ -61,8 +61,8 @@ namespace RemoteFile
             {
                 Console.WriteLine("stopping Filemanager workerThread");
                 msgQueue.Add(null);
-                workerThread.Join();
                 isWorkerThreadActive = false;
+                //workerThread.Join();
             }
             
         }

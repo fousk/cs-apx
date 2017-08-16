@@ -14,11 +14,13 @@ namespace Apx
         static Thread socketAdapterThread;
         static Apx.FileManager fileManager;
         static NodeData nodeData;
+        static bool running;
         // If cs-apx is created from another instance, Eg. CANoe
         public static ConcurrentQueue<ExternalMsg> externalMsgs; // = new ConcurrentQueue<ExternalMsg>();
 
         public void Main(string ipAddress = "127.0.0.1", int port = 5000)
-        { 
+        {
+            running = true;
             Thread.CurrentThread.Name = "MainThread";
             socketAdapter= new SocketAdapter();
 
@@ -32,7 +34,7 @@ namespace Apx
             try
             {
                 bool connectRes = connectTcp(ipAddress, port);
-                if (connectRes)
+                if (connectRes && running)
                     tryEnqueue(new ExternalMsg("status", "connected"));
                 while (connectRes)
                 {
@@ -76,12 +78,16 @@ namespace Apx
 
         public void close()
         {
+            Console.WriteLine("closing APX client");
+            if (socketAdapter != null )
+                socketAdapter.disconnect();
             nodeData = null;
             if (fileManager != null)
             {
                 fileManager.stop();
                 fileManager = null;
             }
+            running = false;
         }
     }
 }

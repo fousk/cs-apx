@@ -40,12 +40,6 @@ namespace cs_apx
                 }
                     
                 Console.WriteLine(apxCoreThread.ThreadState.ToString());
-
-                /*if (isConnected)
-                {
-                    Thread.Sleep(1000);
-                    stopClient();
-                }*/
             }
         }
 
