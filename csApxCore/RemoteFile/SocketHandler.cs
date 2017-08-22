@@ -28,11 +28,11 @@ namespace RemoteFile
     {
         static ReceiveHandler receiveHandler;
         static bool isAcknowledgeSeen;
-        static bool isConnected;
+        public static bool isConnected;
 
         static TcpClient client;
-        static NetworkStream tcpStream; 
-
+        static NetworkStream tcpStream;
+        static List<byte> pingData = RemoteFileUtil.packHeader(RemoteFile.Constants.RMF_CMD_FILE_PING, false);
 
         public SocketAdapter()
         {
@@ -47,8 +47,9 @@ namespace RemoteFile
             byte[] buffer = new byte[2048]; // read in chunks of 2KB
             int bytesRead = 0;
             int bytesParsed;
+            bool running = true;
 
-            while (true)
+            while (running)
             {
                 if (isConnected)
                 {
@@ -71,8 +72,18 @@ namespace RemoteFile
                             { throw new ArgumentException("TcpSocketAdapter._parseData error "  + bytesParsed); }
                         }
                     }
+                    catch (IOException ie)
+                    { 
+                        Console.WriteLine("Socket unavailable, disconnecting");
+                        // Console.WriteLine(ie.ToString());
+                        running = false;
+                        disconnect();
+                    }
                     catch (Exception e)
-                    { Console.WriteLine(e.ToString()); }
+                    {
+                        Console.WriteLine(e.ToString()); 
+                    }
+                        
                 }
             }
             
@@ -167,8 +178,9 @@ namespace RemoteFile
             {
                 Console.WriteLine("Connection failed, closing socket");
                 //Console.WriteLine(e.ToString());
-                tcpStream.Close();
-                client.Close();
+                disconnect();
+                //tcpStream.Close();
+                //client.Close();
                 return false;
             }
 
@@ -182,8 +194,11 @@ namespace RemoteFile
             Console.WriteLine("Closing connection");
             isAcknowledgeSeen = false;
             isConnected = false;
-            tcpStream.Close();
-            tcpStream.Dispose();
+            if (tcpStream != null)
+            {
+                tcpStream.Close();
+                tcpStream.Dispose();
+            }
             client.Close();
             receiveHandler.stop();
         }
@@ -204,9 +219,27 @@ namespace RemoteFile
         {
             List<byte> data = NumHeader.encode((uint)msg.Count, 32);
             data.AddRange(msg);
-            Console.WriteLine("sending: " + data.Count + " bytes");
-            tcpStream.Write(data.ToArray(), 0, data.Count);
+            
+            if (tcpStream != null && tcpStream.CanWrite)
+            {
+                tcpStream.Write(data.ToArray(), 0, data.Count);
+                Console.WriteLine("sending: " + data.Count + " bytes");
+            }
+            else
+            {
+                Console.WriteLine("Sending rejected, tcpStream not available");
+            }
+                
             //Console.WriteLine("_Data_" + Encoding.Default.GetString(data.ToArray()) + "_End_");
+        }
+
+        public void ping()
+        {
+            if (isConnected && tcpStream.CanWrite)
+            {
+                send(pingData);
+            }
+                
         }
     }
 }

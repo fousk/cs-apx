@@ -19,6 +19,7 @@ namespace RemoteFile
         public const uint RMF_CMD_NACK = 1;    //reserved for future use
         public const uint RMF_CMD_EOT = 2;    //reserved for future use
         public const uint RMF_CMD_FILE_INFO = 3;
+        public const uint RMF_CMD_FILE_PING = 5;    // Not in standard (yet)
         public const uint RMF_CMD_FILE_OPEN = 10;
         public const uint RMF_CMD_FILE_CLOSE = 11;
 

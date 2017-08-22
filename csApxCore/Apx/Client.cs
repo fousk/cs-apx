@@ -22,23 +22,23 @@ namespace Apx
         {
             running = true;
             Thread.CurrentThread.Name = "MainThread";
-            socketAdapter= new SocketAdapter();
 
-            nodeData = new NodeData("startupPath");
-            if (externalMsgs != null)
-                nodeData.setExternalQueue(externalMsgs);
-            fileManager = new Apx.FileManager();
-            fileManager.attachNodeData(nodeData);
-            fileManager.start();
-
-            try
+            startSubClasses();
+            try 
             {
                 bool connectRes = connectTcp(ipAddress, port);
-                if (connectRes && running)
+                if (connectRes )
                     tryEnqueue(new ExternalMsg("status", "connected"));
-                while (connectRes)
+                while (connectRes && running)
                 {
                     Thread.Sleep(1000);
+                    socketAdapter.ping();
+                    if (socketAdapterThread.ThreadState == ThreadState.Stopped)
+                    {
+                        running = false;
+                        Console.WriteLine("socketAdapterThread stopped, closing Client");
+                    }
+                        
                 }
                 tryEnqueue(new ExternalMsg("status", "notConnected"));
             }
@@ -46,8 +46,22 @@ namespace Apx
             {
                 tryEnqueue(new ExternalMsg("status", "notConnected"));
                 Console.WriteLine(e.ToString());
+                running = false;
             }
-            
+        }
+
+        public void startSubClasses()
+        {
+            if (socketAdapter == null)
+                socketAdapter = new SocketAdapter();
+            if (nodeData == null)
+                nodeData = new NodeData("startupPath");
+            if (fileManager == null)
+                fileManager = new Apx.FileManager();
+            if (externalMsgs != null)
+                nodeData.setExternalQueue(externalMsgs);
+            fileManager.attachNodeData(nodeData);
+            fileManager.start();
         }
 
         public void setQueue(ConcurrentQueue<ExternalMsg> setMsgs)
@@ -63,6 +77,8 @@ namespace Apx
 
         static public bool connectTcp(string address, int port)
         {
+            if (socketAdapter == null)
+                socketAdapter = new SocketAdapter();
             socketAdapter.setRecieveHandler(fileManager);
             if (socketAdapter.connect(address, port, 0))
             {
