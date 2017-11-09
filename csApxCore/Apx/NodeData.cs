@@ -141,7 +141,7 @@ namespace Apx
 
         private string getStringWithinQuotes()
         {
-            return Regex.Match(line, "\"(.*)\"").Groups[1].ToString();
+            return Regex.Match(line, "\"(.*?)\"").Groups[1].ToString();
         }
         
         private string getsignalTypefromTypeIdentifier(string enumType)
@@ -297,7 +297,7 @@ namespace Apx
                 while (parsed < dataLen)
                 {
                     aS = apxSignalList[(int)offset + parsed];
-                    
+
                     if (externalQueue != null)
                     {
                         externalQueue.Enqueue(new ExternalMsg(aS.name, typeToReadable(aS.type, 1, file.read((int)offset + parsed, (int)aS.len).ToArray())));
