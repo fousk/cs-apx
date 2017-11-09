@@ -26,7 +26,7 @@ namespace cs_apx
             {
                 Thread.Sleep(1000);
                 chunk = msgs.Count;
-                if (chunk >= 10)
+                if (chunk >= 100)
                     Console.WriteLine("chunk of " + chunk + " messages");
                 while(!msgs.IsEmpty)
                 {
@@ -61,7 +61,7 @@ namespace cs_apx
             }
             else
             {
-                if (chunksize < 10)
+                if (chunksize < 100)
                     Console.WriteLine("Dequeued: " + msg.name + " - " + msg.value);
             }
         }

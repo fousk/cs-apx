@@ -28,19 +28,17 @@ namespace Apx
     {
         public int minVal;
         public int maxVal;
-        public bool isArray;
         public string sigName;
         public string typeName; // Not activly used except for debugging
         public List<string> structNames;
         public List<string> Defenitions;
 
-        public ApxType(string sigName, string typeName, List<string> structNames, List<string> Defenitions, bool isArrayType = false)
+        public ApxType(string sigName, string typeName, List<string> structNames, List<string> Defenitions)
         {
             this.sigName = sigName;
             this.typeName = typeName;
             this.structNames = structNames;
             this.Defenitions = Defenitions;
-            this.isArray = isArrayType;
         }
     }
     
@@ -48,9 +46,9 @@ namespace Apx
     public partial class NodeData : Apx.FileEventHandler
     {
 
-        public void addApxTypeToList(string sigName, string typeName, List<string> structNames, List<string> typeIdentifiers, bool isArray, string interpretation = "")
+        public void addApxTypeToList(string sigName, string typeName, List<string> structNames, List<string> typeIdentifiers, string interpretation = "")
         {
-            ApxType atype = new ApxType(sigName, typeName, structNames, typeIdentifiers, isArray);
+            ApxType atype = new ApxType(sigName, typeName, structNames, typeIdentifiers);
             apxTypeList.Add(atype);
         }
 
@@ -58,24 +56,26 @@ namespace Apx
         public void addApxTypedSignalToList(ApxType aT)
         {
             uint offset = (uint)apxSignalList.Count;
-            int arraySize = 0;
+            int arraySize;
+            string type;
+            string sigName;
             for (int i = 0; i < aT.Defenitions.Count; i++)
             {
-                string type = aT.Defenitions[i];
-                string sigName = aT.sigName + ":" + aT.typeName;
+                type = aT.Defenitions[i];
+                sigName = aT.sigName + ":" + aT.typeName;
+
+                arraySize = 0;
+                if (getnumericalInHardBrackets(type).Length > 0)
+                    arraySize = Int32.Parse(getnumericalInHardBrackets(type));
                 if (aT.structNames.Count > i)
                     sigName += ":" + aT.structNames[i];
 
-                if (aT.isArray)
-                    arraySize = aT.Defenitions.Count;
-
                 uint typeLen = typeToLen(type, arraySize);
-
                 indataLen += typeLen;
+
                 for (int j = 0; j < typeLen; j++)
                 {
                     // A 32bit signal is entered 4 times to make lookup easier as you can go by address anywhere in the range
-                    // Handle arrays(ex string) as well
                     ApxSignal apxsig = new ApxSignal(offset, typeLen, type[0], sigName);
                     apxSignalList.Add(apxsig);
                 }
@@ -88,7 +88,9 @@ namespace Apx
             string res = "";
 
             if (array != 1 && type != 'a')
-            { throw new NotImplementedException("arrays not handled, yet"); }
+            { 
+                throw new NotImplementedException("arrays not handled, yet"); 
+            }
 
             switch (type)
             {

@@ -12,9 +12,7 @@ namespace Apx
 {
 
     // ToDO 
-    // Ports not processed according to APX doc (set up these as read port as well?)
-    // Structs not handeled
-    // Code("R"-line) is in a mess, clean up!
+    // Provide ports not processed according to APX doc (all is set as read for the moment)
 
     public partial class NodeData : Apx.FileEventHandler
     {
@@ -97,7 +95,7 @@ namespace Apx
             string sigName = getStringWithinQuotes();
             string signalType = getSignalType();
             string typeIdentifier = getnumericalInHardBrackets();
-            bool isArray = false;
+
             ApxType aT;
             int index = int.MaxValue;
             if (typeIdentifier != "")
@@ -121,13 +119,11 @@ namespace Apx
                     defenitions = new List<string> {signalType};
                 else
                 {
-                    isArray = true;
                     defenitions = new List<string>();
-                    for (int i=0; i < index; i++)
-                        defenitions.Add(signalType);
+                    defenitions.Add(signalType + "[" + index.ToString() + "]");
                 }
 
-                aT = new ApxType(sigName, signalType, names, defenitions, isArray);
+                aT = new ApxType(sigName, signalType, names, defenitions);
             }
             else
                 throw new ArgumentException("not able to parse line to ApxType");
@@ -159,8 +155,11 @@ namespace Apx
         }
 
         private string getnumericalInHardBrackets()
+        { return getnumericalInHardBrackets(line); }
+        
+        private string getnumericalInHardBrackets(string input)
         {
-            return Regex.Match(line, "\\[(\\d+)\\]").Groups[1].ToString();
+            return Regex.Match(input, "\\[(\\d+)\\]").Groups[1].ToString();
         }
 
         private void addTypeDefenitionToList()
@@ -179,7 +178,6 @@ namespace Apx
             string arrayString = getnumericalInHardBrackets();
             List<string> tmp = new List<string>();
             int arraySize = int.MaxValue;
-            bool isArray = false;
 
             if (arrayString != "")
                 arraySize = int.Parse(arrayString);
@@ -190,12 +188,10 @@ namespace Apx
                 tmp.Add(typeIdentifier); // new List<string>();
             else
             {
-                isArray = true;
-                for (int i = 0; i < arraySize; i++)
-                    tmp.Add(typeIdentifier);
+                tmp.Add(typeIdentifier + "[" + arraySize + "]");
             }
 
-            addApxTypeToList("", typeName, new List<string>(), tmp, isArray);
+            addApxTypeToList("", typeName, new List<string>(), tmp);
         }
 
         private void addApxStructTypeToList(string typeName)
@@ -221,7 +217,7 @@ namespace Apx
                 else
                     throw new ArgumentException("Following line not decoded: " + line);
             }
-            addApxTypeToList("", typeName, names, types, false);
+            addApxTypeToList("", typeName, names, types);
         }
 
         private bool isTypeWithStructData()

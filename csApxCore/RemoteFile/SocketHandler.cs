@@ -32,7 +32,6 @@ namespace RemoteFile
 
         static TcpClient client;
         static NetworkStream tcpStream;
-        static List<byte> pingData = RemoteFileUtil.packHeader(RemoteFile.Constants.RMF_CMD_FILE_PING, false);
 
         public SocketAdapter()
         {
@@ -237,7 +236,10 @@ namespace RemoteFile
         {
             if (isConnected && tcpStream.CanWrite)
             {
-                send(pingData);
+                List<byte> data = RemoteFileUtil.packHeader(RemoteFile.Constants.RMF_CMD_START_ADDR, false);
+                List<byte> payload = BitConverter.GetBytes(Constants.RMF_CMD_FILE_HEARTBEAT_REQ).ToList();
+                data.AddRange(payload);
+                send(data);
             }
                 
         }
