@@ -25,7 +25,7 @@ public static class NumHeader
                 {
                     if (offset+4 <= data.Count)
                     {
-                        List<byte> val = data.GetRange(offset, offset + 4);
+                        List<byte> val = data.GetRange(offset, 4);
                         val.Reverse();  // From Big endian to Little endian
                         value = BitConverter.ToUInt32(val.ToArray(), 0);
                         ret.value = (value & 0x7FFFFFFF);
